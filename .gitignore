@@ -1,0 +1,7 @@
+# Memória do Claude
+.claude/
+
+# Arquivos gerados
+gerar_apresentacao.py
+OvertimeOS_Infraestrutura.pptx
+index.html

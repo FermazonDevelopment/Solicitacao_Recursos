@@ -1,0 +1,39 @@
+# OvertimeOS — Requisitos do Sistema
+# Instale as ferramentas abaixo antes de executar o projeto
+
+# ─── Backend ──────────────────────────────────────────────
+Java 17+
+  Download: https://adoptium.net/
+  Versão testada: Eclipse Adoptium JDK 17.0.18
+
+Maven 3.9+
+  Download: https://maven.apache.org/download.cgi
+  (ou use o wrapper mvnw incluído no projeto)
+
+# ─── Banco de Dados ───────────────────────────────────────
+PostgreSQL 14+
+  Download: https://www.postgresql.org/download/
+  Banco necessário: CREATE DATABASE overtimeos;
+
+# ─── Frontend ─────────────────────────────────────────────
+Node.js 18+
+  Download: https://nodejs.org/
+  Versão testada: 18.x LTS
+
+Angular CLI 17+
+  Instalar via npm:
+    npm install -g @angular/cli@17
+
+# ─── Servidor Web (Produção) ──────────────────────────────
+Nginx 1.24+
+  Download: https://nginx.org/en/download.html
+  Configuração: C:/nginx/conf/nginx.conf
+
+# ─── Gerenciador de Serviços Windows (Produção) ───────────
+NSSM 2.24+
+  Download: https://nssm.cc/download
+  Usado para registrar o backend e o Nginx como serviços Windows
+
+# ─── Integração Sólides (Opcional) ───────────────────────
+Token de webhook configurado no painel do Sólides
+Eventos necessários: edicao_colaborador, novo_colaborador, demissao_colaborador
