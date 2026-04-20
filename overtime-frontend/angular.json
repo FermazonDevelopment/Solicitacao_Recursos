@@ -58,7 +58,7 @@
           "defaultConfiguration": "development",
           "options": {
             "host": "0.0.0.0",
-            "port": 30001,
+            "port": 4200,
             "allowedHosts": ["optimus", "172.16.1.5", "localhost"]
           }
         }
