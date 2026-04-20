@@ -1,4 +1,4 @@
-# OvertimeOS — Sistema de Gestão de Horas Extras
+# SISTEMA DE SOLICITAÇÃO DE RECURSOS PARA HORAS EXTRAS
 
 Sistema interno da **Fermazon** para registro e controle de solicitações de horas extras, com autenticação por departamento, painel administrativo e integração via webhook com o Sólides.
 
