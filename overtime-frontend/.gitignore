@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+C:/Sistemas/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Cache
+.angular/
+*.log

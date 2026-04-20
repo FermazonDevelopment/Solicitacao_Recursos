@@ -1,0 +1,11 @@
+# Segredos — NUNCA commitar
+.env
+
+# Maven
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/

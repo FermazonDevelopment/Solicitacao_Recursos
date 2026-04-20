@@ -1,0 +1,181 @@
+<div class="page">
+  <!-- Banners -->
+  @if (blocked) {
+    <div class="banner banner-danger">
+      <mat-icon>lock</mat-icon>
+      O prazo para solicitações encerrou às 14:00. Entre em contato com o setor Administrativo.
+    </div>
+  }
+
+  <div class="card">
+    <div class="card-title">Registrar Horas Extras</div>
+
+    <div class="form-grid form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Data *</label>
+        <app-date-picker
+          [value]="fDate"
+          (valueChange)="fDate = $event; onDateChange()"
+          [disabled]="blocked">
+        </app-date-picker>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo do Dia</label>
+        <div class="form-control" style="background:var(--bg);cursor:default;display:flex;align-items:center;gap:8px">
+          @if (dayType) {
+            <span class="tag" [class.tag-blue]="dayType==='weekday'" [class.tag-purple]="dayType==='weekend'">
+              <mat-icon class="icon-sm">{{ dayType === 'weekday' ? 'work' : 'beach_access' }}</mat-icon>
+              {{ dayTypeLabel(dayType) }}
+            </span>
+          } @else {
+            <span style="color:var(--t3)">Auto — selecione uma data</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Permanência -->
+    @if (dayType) {
+      <div class="form-group" style="margin-top:20px">
+        <label class="form-label">Permanência Até *</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+          @if (dayType === 'weekday') {
+            <label class="resource-item" [class.ri-lanche]="permanencia==='19:30'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+              <input type="radio" name="perm" value="19:30" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
+              <mat-icon class="icon-sm">lunch_dining</mat-icon> Até 19:30 &nbsp;(Lanche)
+            </label>
+            <label class="resource-item" [class.ri-janta]="permanencia==='21:00'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+              <input type="radio" name="perm" value="21:00" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
+              <mat-icon class="icon-sm">restaurant</mat-icon> Até 21:00 &nbsp;(Janta + Rota + Uber)
+            </label>
+          } @else {
+            <label class="resource-item" [class.ri-cafe]="permanencia==='until12'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+              <input type="radio" name="perm" value="until12" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
+              <mat-icon class="icon-sm">local_cafe</mat-icon> Até 12h &nbsp;(Café)
+            </label>
+            <label class="resource-item" [class.ri-almoco]="permanencia==='after12'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+              <input type="radio" name="perm" value="after12" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
+              <mat-icon class="icon-sm">restaurant_menu</mat-icon> Após 12h &nbsp;(Café + Almoço)
+            </label>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Multi-select de colaboradores -->
+    @if (dayType && permanencia) {
+      <div class="form-group" style="margin-top:20px">
+        <label class="form-label">Selecionar Colaboradores *</label>
+        <div class="multi-select">
+          <div class="ms-search">
+            <mat-icon class="icon-sm" style="color:var(--t3)">search</mat-icon>
+            <input type="text" placeholder="Buscar por nome ou departamento..."
+                   [(ngModel)]="msQuery" [disabled]="blocked" />
+          </div>
+          <div class="ms-list">
+            @if (filteredEmployees.length === 0) {
+              <div class="ms-empty">Nenhum colaborador encontrado</div>
+            }
+            @for (emp of filteredEmployees; track emp.id) {
+              <div class="ms-item" [class.selected]="selCollabs.includes(emp.id)"
+                   (click)="!blocked && toggleCollab(emp.id)">
+                <div class="ms-checkbox">
+                  @if (selCollabs.includes(emp.id)) { <span class="ms-check">✓</span> }
+                </div>
+                <div>
+                  <div class="ms-name">{{ emp.name }}</div>
+                  <div class="ms-meta">
+                    <span class="dept-tag dept-{{ emp.department }}">{{ emp.department }}</span>
+                    · Reg. {{ emp.registration }}
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Selecionados -->
+      @if (selCollabs.length > 0) {
+        <div style="margin-top:20px">
+          <div class="sep-label">Selecionados ({{ selCollabs.length }})</div>
+          <div class="chips">
+            @for (id of selCollabs; track id) {
+              <div class="chip">
+                {{ getEmployee(id)?.name }}
+                @if (!blocked) {
+                  <mat-icon class="icon-xs chip-remove" (click)="removeCollab(id)">close</mat-icon>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="sep-label" style="margin-top:20px">Dados por Colaborador</div>
+          <div class="collab-cards">
+            @for (id of selCollabs; track id) {
+              @if (getEmployee(id) && collabData[id]) {
+                <div class="collab-card">
+                  <div class="collab-header">
+                    <div class="collab-info">
+                      <div class="avatar">{{ initials(getEmployee(id)!.name) }}</div>
+                      <div>
+                        <div class="collab-name">{{ getEmployee(id)!.name }}</div>
+                        <div class="collab-meta">
+                          <span class="dept-tag dept-{{ getEmployee(id)!.department }}">{{ getEmployee(id)!.department }}</span>
+                          · Reg. {{ getEmployee(id)!.registration }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="address-text">
+                    <mat-icon class="icon-sm">location_on</mat-icon>
+                    {{ getEmployee(id)!.address }}
+                  </div>
+                  <div class="form-grid" style="gap:14px">
+                    <div class="form-group">
+                      <label class="form-label">Motivo *</label>
+                      <textarea class="form-control" placeholder="Descreva o motivo das horas extras..."
+                                [(ngModel)]="collabData[id].motivo" [disabled]="blocked"></textarea>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-radius:var(--rs);border:1px solid var(--border)">
+                      <div>
+                        <div style="font-size:13px;font-weight:500">Veículo Próprio</div>
+                        <div style="font-size:12px;color:var(--t3)">Remove Rota e Uber automaticamente</div>
+                      </div>
+                      <div class="toggle-wrap" (click)="!blocked && toggleVeiculo(id)">
+                        <div class="toggle" [class.on]="collabData[id].veiculo"></div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Recursos (editável)</label>
+                      <div class="resource-grid">
+                        @for (key of availableResKeys; track key) {
+                          <div class="resource-item"
+                               [class]="collabData[id].resources.includes(key) ? resCfg[key].cls : ''"
+                               [class.ri-disabled]="isResLocked(id, key)"
+                               (click)="!blocked && !isResLocked(id, key) && toggleRes(id, key)">
+                            <mat-icon class="icon-sm">{{ resCfg[key].icon }}</mat-icon>
+                            {{ resCfg[key].label }}
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          @if (!blocked) {
+            <div style="margin-top:28px;display:flex;justify-content:flex-end;gap:12px">
+              <button class="btn btn-secondary" (click)="clearForm()">Limpar</button>
+              <button class="btn btn-primary" (click)="submit()">
+                <mat-icon class="icon-sm">check_circle</mat-icon> Registrar Solicitação
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>
