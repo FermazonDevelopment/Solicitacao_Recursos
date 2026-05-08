@@ -71,6 +71,11 @@ export class FormComponent implements OnInit {
   get deadlinePassed(): boolean { return new Date().getHours() >= 14; }
   get blocked(): boolean { return this.deadlinePassed && !this.isAdmin; }
 
+  get today(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
   get filteredEmployees(): Employee[] {
     const q = this.msQuery.toLowerCase();
     return this.employees.filter(e =>
@@ -177,6 +182,7 @@ export class FormComponent implements OnInit {
 
   submit(): void {
     if (!this.fDate)        { this.toast.show('Selecione uma data', 'error'); return; }
+    if (this.fDate < this.today) { this.toast.show('Não é permitido registrar solicitações para datas retroativas', 'error'); return; }
     if (!this.permanencia)  { this.toast.show('Selecione a permanência', 'error'); return; }
     if (!this.selCollabs.length) { this.toast.show('Selecione ao menos um colaborador', 'error'); return; }
 

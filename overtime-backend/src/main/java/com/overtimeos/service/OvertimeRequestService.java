@@ -46,6 +46,11 @@ public class OvertimeRequestService {
     @Transactional
     public List<OvertimeRequestDto> createRequests(OvertimeRequestCreateDto dto, String registeredBy) {
         LocalDate date    = dto.getDate();
+
+        if (date.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Não é permitido registrar solicitações para datas retroativas");
+        }
+
         String dayType    = resolveDayType(date);
         long ts           = System.currentTimeMillis();
 

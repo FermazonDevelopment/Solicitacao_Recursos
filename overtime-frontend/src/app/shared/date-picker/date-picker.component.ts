@@ -76,6 +76,9 @@ import { MatIconModule } from '@angular/material/icon';
       border-color: transparent !important;
       box-shadow: 0 2px 10px rgba(99,102,241,.5);
     }
+    .dp-cell.dp-past {
+      opacity: .35; cursor: not-allowed; pointer-events: none;
+    }
   `],
   template: `
     <div class="dp-wrap">
@@ -116,6 +119,7 @@ import { MatIconModule } from '@angular/material/icon';
                      [class.dp-today]="isToday(day)"
                      [class.dp-selected]="isSelected(day)"
                      [class.dp-empty]="!day"
+                     [class.dp-past]="isBeforeMin(day)"
                      (click)="selectDay(day)">
                   {{ day ?? '' }}
                 </div>
@@ -131,6 +135,7 @@ export class DatePickerComponent implements OnChanges {
   @Input()  value       = '';
   @Input()  disabled    = false;
   @Input()  placeholder = 'dd/mm/aaaa';
+  @Input()  minDate     = '';  // YYYY-MM-DD — days before this are disabled
   @Output() valueChange = new EventEmitter<string>();
 
   isOpen    = false;
@@ -185,11 +190,18 @@ export class DatePickerComponent implements OnChanges {
   }
 
   selectDay(day: number | null): void {
-    if (!day) return;
+    if (!day || this.isBeforeMin(day)) return;
     const m = String(this.viewMonth + 1).padStart(2, '0');
     const d = String(day).padStart(2, '0');
     this.valueChange.emit(`${this.viewYear}-${m}-${d}`);
     this.isOpen = false;
+  }
+
+  isBeforeMin(day: number | null): boolean {
+    if (!day || !this.minDate) return false;
+    const m = String(this.viewMonth + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    return `${this.viewYear}-${m}-${d}` < this.minDate;
   }
 
   isSelected(day: number | null): boolean {

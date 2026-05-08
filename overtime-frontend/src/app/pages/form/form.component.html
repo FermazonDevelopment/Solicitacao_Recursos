@@ -16,7 +16,8 @@
         <app-date-picker
           [value]="fDate"
           (valueChange)="fDate = $event; onDateChange()"
-          [disabled]="blocked">
+          [disabled]="blocked"
+          [minDate]="today">
         </app-date-picker>
       </div>
       <div class="form-group">
