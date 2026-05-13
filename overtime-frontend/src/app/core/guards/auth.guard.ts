@@ -19,3 +19,9 @@ export const tiOrAdminGuard: CanActivateFn = () => {
   if (auth.isLoggedIn() && (auth.isAdmin() || auth.getDepartment() === 'TI')) return true;
   return inject(Router).createUrlTree(['/form']);
 };
+
+export const tiGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  if (auth.isLoggedIn() && auth.getDepartment().toUpperCase() === 'TI') return true;
+  return inject(Router).createUrlTree(['/form']);
+};

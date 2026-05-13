@@ -156,10 +156,17 @@ import { SidebarService } from '../../core/services/sidebar.service';
             <span class="nav-text">Dashboard</span>
           </a>
         }
-        @if (auth.isAdmin() || auth.getDepartment() === 'TI') {
+        @if (auth.getDepartment() === 'TI') {
           <a class="nav-item" routerLink="/admin-passwords" routerLinkActive="active" data-tip="Gestão de Senhas">
             <mat-icon>manage_accounts</mat-icon>
             <span class="nav-text">Gestão de Senhas</span>
+          </a>
+        }
+        @if (auth.getDepartment() === 'TI') {
+          <div class="nav-label" style="margin-top:16px">Super-Admin</div>
+          <a class="nav-item" routerLink="/admin-users" routerLinkActive="active" data-tip="Gerenciar Usuários">
+            <mat-icon>admin_panel_settings</mat-icon>
+            <span class="nav-text">Gerenciar Usuários</span>
           </a>
         }
 
@@ -175,7 +182,11 @@ import { SidebarService } from '../../core/services/sidebar.service';
           <mat-icon class="icon-sm" style="flex-shrink:0">business</mat-icon>
           <span class="dept-text">
             {{ auth.getDepartment() }}
-            @if (auth.isAdmin()) { <span class="badge badge-admin">Admin</span> }
+            @if (auth.getDepartment() === 'TI') {
+              <span class="badge" style="background:var(--primary);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px">Super-Admin</span>
+            } @else if (auth.isAdmin()) {
+              <span class="badge badge-admin">Admin</span>
+            }
           </span>
         </div>
         <button class="logout-btn" (click)="auth.logout()">

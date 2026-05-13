@@ -47,8 +47,6 @@ public class PasswordController {
     }
 
     private boolean canManage(Authentication auth) {
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        return isAdmin || "TI".equalsIgnoreCase(auth.getName());
+        return "TI".equalsIgnoreCase(auth.getName());
     }
 }

@@ -1,11 +1,40 @@
-# Segredos — NUNCA commitar
+# ============================================================
+# SEGREDOS — NUNCA commitar
+# ============================================================
 .env
+.env.*
+!.env.example
 
-# Maven
+# ============================================================
+# Maven build
+# ============================================================
 target/
 *.class
+*.jar
+*.war
+*.ear
 
+# Maven wrapper jar (binário desnecessário no repo)
+.mvn/wrapper/maven-wrapper.jar
+
+# ============================================================
+# Logs
+# ============================================================
+*.log
+logs/
+
+# ============================================================
+# Configurações locais (sobrescritas fora do repo)
+# ============================================================
+src/main/resources/application-local.properties
+src/main/resources/application-dev.properties
+
+# ============================================================
 # IDE
+# ============================================================
 .idea/
 *.iml
+.factorypath
 .vscode/
+*.swp
+*.swo
