@@ -134,7 +134,17 @@
                   </div>
                   <div class="form-grid" style="gap:14px">
                     <div class="form-group">
-                      <label class="form-label">Motivo *</label>
+                      <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+                        <span>Motivo *</span>
+                        @if (selCollabs.length > 1 && collabData[id]?.motivo?.trim()) {
+                          <button type="button"
+                                  style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-dim);border:1px solid var(--primary);border-radius:var(--rxs);padding:3px 8px;cursor:pointer"
+                                  (click)="replicateMotivo(id)">
+                            <mat-icon style="font-size:13px;width:13px;height:13px">content_copy</mat-icon>
+                            Replicar para todos
+                          </button>
+                        }
+                      </label>
                       <textarea class="form-control" placeholder="Descreva o motivo das horas extras..."
                                 [(ngModel)]="collabData[id].motivo" [disabled]="blocked"></textarea>
                     </div>

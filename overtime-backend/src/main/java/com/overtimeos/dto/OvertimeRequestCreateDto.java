@@ -33,7 +33,7 @@ public class OvertimeRequestCreateDto {
 
         private boolean veiculoProprio;
 
-        @NotEmpty
+        @NotNull
         private List<String> resources;
     }
 }

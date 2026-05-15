@@ -175,6 +175,17 @@ export class FormComponent implements OnInit {
     return dt === 'weekday' ? 'Dia Útil' : 'Fim de Semana / Feriado';
   }
 
+  replicateMotivo(sourceId: number): void {
+    const motivo = this.collabData[sourceId]?.motivo?.trim();
+    if (!motivo) return;
+    this.selCollabs.forEach(id => {
+      if (id !== sourceId && this.collabData[id]) {
+        this.collabData[id].motivo = motivo;
+      }
+    });
+    this.toast.show('Motivo replicado para todos os colaboradores');
+  }
+
   clearForm(): void {
     this.fDate = ''; this.dayType = ''; this.permanencia = '';
     this.selCollabs = []; this.collabData = {};
