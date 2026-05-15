@@ -392,12 +392,13 @@ export class PanelComponent implements OnInit, OnDestroy {
       const data = dt.toLocaleDateString('pt-BR');
       const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       return {
-      'Nome':           r.name,
-      'Departamento':   r.department,
-      'Endereço':       r.address ?? '',
-      'Status':         r.status,
-      'Data Registro':  data,
-      'Hora Registro':  hora,
+      'Nome':              r.name,
+      'Departamento':      r.department,
+      'Endereço':          r.address ?? '',
+      'Status':            r.status,
+      'Solicitado por':    r.registeredBy ?? '',
+      'Data Registro':     data,
+      'Hora Registro':     hora,
       'Lanche': r.resources.includes('lanche') ? 'Sim' : '',
       'Café':   r.resources.includes('cafe')   ? 'Sim' : '',
       'Almoço': r.resources.includes('almoco') ? 'Sim' : '',
@@ -408,12 +409,13 @@ export class PanelComponent implements OnInit, OnDestroy {
     });
 
     rows.push({
-      'Nome':           'TOTAL',
-      'Departamento':   '',
-      'Endereço':       '',
-      'Status':         '',
-      'Data Registro':  '',
-      'Hora Registro':  '',
+      'Nome':              'TOTAL',
+      'Departamento':      '',
+      'Endereço':          '',
+      'Status':            '',
+      'Solicitado por':    '',
+      'Data Registro':     '',
+      'Hora Registro':     '',
       'Lanche': reqs.filter(r => r.resources.includes('lanche')).length,
       'Café':   reqs.filter(r => r.resources.includes('cafe')).length,
       'Almoço': reqs.filter(r => r.resources.includes('almoco')).length,
@@ -426,8 +428,8 @@ export class PanelComponent implements OnInit, OnDestroy {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
 
-    // Largura: Nome, Departamento, Endereço, Status, Data Registro, Hora Registro, recursos...
-    ws['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 45 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+    // Nome, Departamento, Endereço, Status, Solicitado por, Data Registro, Hora Registro, recursos...
+    ws['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 45 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
 
     const [y, m, d] = hoje.split('-');
     XLSX.writeFile(wb, `relatorio_${d}-${m}-${y}.xlsx`);
