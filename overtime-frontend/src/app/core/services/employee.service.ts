@@ -11,4 +11,8 @@ export class EmployeeService {
   getEmployees(): Observable<Employee[]> {
     return this.http.get<Employee[]>(`${environment.apiUrl}/employees`);
   }
+
+  createOutsourced(names: string[], companyName: string): Observable<Employee[]> {
+    return this.http.post<Employee[]>(`${environment.apiUrl}/employees/outsourced`, { names, companyName });
+  }
 }

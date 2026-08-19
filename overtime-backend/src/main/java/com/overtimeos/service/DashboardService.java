@@ -46,6 +46,21 @@ public class DashboardService {
         Map<String, Long> permCounts = confirmed.stream()
                 .collect(Collectors.groupingBy(OvertimeRequest::getPermanencia, Collectors.counting()));
 
+        // Recursos fornecidos a terceirizados (apenas confirmados)
+        List<OvertimeRequest> outsourcedConfirmed = confirmed.stream()
+                .filter(r -> r.getEmployee().isOutsourced()).toList();
+        Map<String, Long> outsourcedResourceCounts = new LinkedHashMap<>();
+        for (String k : resourceKeys) {
+            outsourcedResourceCounts.put(k, outsourcedConfirmed.stream().filter(r -> r.getResources().contains(k)).count());
+        }
+
+        // Solicitações por empresa terceirizada (apenas confirmados)
+        Map<String, Long> companyCounts = outsourcedConfirmed.stream()
+                .collect(Collectors.groupingBy(
+                    r -> r.getEmployee().getCompanyName() != null ? r.getEmployee().getCompanyName() : "Sem empresa",
+                    Collectors.counting()
+                ));
+
         // Top collaborators (apenas confirmados)
         Map<String, Long> collabCounts = confirmed.stream()
                 .collect(Collectors.groupingBy(r -> r.getEmployee().getName(), Collectors.counting()));
@@ -74,11 +89,13 @@ public class DashboardService {
         return DashboardDto.builder()
                 .total(all.size())
                 .confirmedCount(all.stream().filter(r -> "CONFIRMADO".equals(r.getStatus())).count())
-                .pendingCount(all.stream().filter(r -> "PENDENTE".equals(r.getStatus())).count())
+                .pendingCount(requestRepository.countPending())
                 .todayCount(all.stream().filter(r -> r.getDate().equals(today)).count())
                 .resourceCounts(resourceCounts)
                 .departmentCounts(deptCounts)
                 .permanenciaCounts(permCounts)
+                .outsourcedResourceCounts(outsourcedResourceCounts)
+                .companyCounts(companyCounts)
                 .topCollaborators(topCollabs)
                 .weekTrend(trend)
                 .build();

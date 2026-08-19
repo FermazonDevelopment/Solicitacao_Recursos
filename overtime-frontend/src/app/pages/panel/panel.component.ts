@@ -31,7 +31,7 @@ const RES_CFG: Record<string, { icon: string; label: string; cls: string }> = {
 };
 
 const PERM_LABELS: Record<string, string> = {
-  '19:30': 'Até 19:30', '21:00': 'Até 21:00', 'until12': 'Até 12h', 'after12': 'Após 12h'
+  '19:30': 'Até 19:30', '21:00': 'Até 21:00', 'until12': 'Até 12h', 'after12': 'Após 12h', 'especial': 'Jornada Especial'
 };
 
 export interface EditState {
@@ -58,6 +58,7 @@ export class PanelComponent implements OnInit, OnDestroy {
   fltDept = '';
   fltDate = new Date().toISOString().split('T')[0];
   fltStatus = '';
+  fltCompany = '';
   departments: string[] = [];
   resTags = RES_TAGS;
   resCfg  = RES_CFG;
@@ -87,8 +88,22 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   get isAdmin(): boolean { return this.auth.isAdmin(); }
 
+  get companies(): string[] {
+    const set = new Set(
+      this.requests.filter(r => r.outsourced && r.companyName).map(r => r.companyName as string)
+    );
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }
+
+  get companyFilteredRequests(): OvertimeRequest[] {
+    if (!this.fltCompany) return this.requests;
+    if (this.fltCompany === 'INTERNAL') return this.requests.filter(r => !r.outsourced);
+    if (this.fltCompany === 'OUTSOURCED') return this.requests.filter(r => r.outsourced);
+    return this.requests.filter(r => r.outsourced && r.companyName === this.fltCompany);
+  }
+
   get kpis() {
-    const all = this.requests;
+    const all = this.companyFilteredRequests;
     return [
       { icon: 'receipt_long',   label: 'Total',    val: all.length,                                                          color: 'var(--primary)' },
       { icon: 'schedule',       label: 'Pendentes', val: all.filter(r => r.status === 'PENDENTE').length,                   color: 'var(--yellow)'  },
@@ -128,8 +143,9 @@ export class PanelComponent implements OnInit, OnDestroy {
   currentPage = 1;
 
   get filteredRequests(): OvertimeRequest[] {
-    if (!this.fltStatus) return this.requests;
-    return this.requests.filter(r => r.status === this.fltStatus);
+    const base = this.companyFilteredRequests;
+    if (!this.fltStatus) return base;
+    return base.filter(r => r.status === this.fltStatus);
   }
 
   get totalPages(): number {
@@ -154,6 +170,7 @@ export class PanelComponent implements OnInit, OnDestroy {
     this.fltDept = '';
     this.fltDate = '';
     this.fltStatus = '';
+    this.fltCompany = '';
     this.load(true);
   }
 
@@ -178,6 +195,7 @@ export class PanelComponent implements OnInit, OnDestroy {
     if (!r) return [];
     const dayType = r.dayType;
     const perm = this.editState!.permanencia;
+    if (perm === 'especial') return ['almoco', 'rota', 'uber'];
     if (dayType === 'weekday') {
       if (perm === '19:30') return ['lanche'];
       if (perm === '21:00') return ['janta', 'rota', 'uber'];
@@ -374,9 +392,10 @@ export class PanelComponent implements OnInit, OnDestroy {
   permLabel(p: string): string { return this.permLabels[p] ?? p; }
 
   permOptionsFor(r: OvertimeRequest): { value: string; label: string }[] {
-    return r.dayType === 'weekday'
+    const base = r.dayType === 'weekday'
       ? [{ value: '19:30', label: 'Até 19:30' }, { value: '21:00', label: 'Até 21:00' }]
       : [{ value: 'until12', label: 'Até 12h' }, { value: 'after12', label: 'Após 12h' }];
+    return [...base, { value: 'especial', label: 'Jornada Especial' }];
   }
 
   canEdit(r: OvertimeRequest): boolean {
@@ -385,7 +404,7 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   gerarRelatorio(): void {
     const hoje = this.fltDate || new Date().toISOString().split('T')[0];
-    const reqs = this.requests.filter(r => r.date === hoje && r.status === 'CONFIRMADO');
+    const reqs = this.companyFilteredRequests.filter(r => r.date === hoje && r.status === 'CONFIRMADO');
 
     const rows: Record<string, string | number>[] = reqs.map(r => {
       const dt = new Date(r.registeredAt);
@@ -394,6 +413,8 @@ export class PanelComponent implements OnInit, OnDestroy {
       return {
       'Nome':              r.name,
       'Departamento':      r.department,
+      'Terceirizado':      r.outsourced ? 'Sim' : 'Não',
+      'Empresa':           r.outsourced ? (r.companyName ?? '') : '',
       'Endereço':          r.address ?? '',
       'Status':            r.status,
       'Solicitado por':    r.registeredBy ?? '',
@@ -411,6 +432,8 @@ export class PanelComponent implements OnInit, OnDestroy {
     rows.push({
       'Nome':              'TOTAL',
       'Departamento':      '',
+      'Terceirizado':      '',
+      'Empresa':           '',
       'Endereço':          '',
       'Status':            '',
       'Solicitado por':    '',
@@ -428,8 +451,8 @@ export class PanelComponent implements OnInit, OnDestroy {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
 
-    // Nome, Departamento, Endereço, Status, Solicitado por, Data Registro, Hora Registro, recursos...
-    ws['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 45 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+    // Nome, Departamento, Terceirizado, Empresa, Endereço, Status, Solicitado por, Data Registro, Hora Registro, recursos...
+    ws['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 12 }, { wch: 22 }, { wch: 45 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
 
     const [y, m, d] = hoje.split('-');
     XLSX.writeFile(wb, `relatorio_${d}-${m}-${y}.xlsx`);

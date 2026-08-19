@@ -21,6 +21,7 @@
         <div class="kpi-card">
           <div class="kpi-label">Pendentes</div>
           <div class="kpi-value" style="color:var(--yellow)">{{ data.pendingCount }}</div>
+          <div style="font-size:11px;color:var(--t3)">Todas, sem filtro de período</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Hoje</div>
@@ -57,7 +58,7 @@
     <!-- Charts row 1 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
       <!-- Recursos -->
-      <div class="card">
+      <div class="card card-clickable" (click)="openChart('resources')">
         <div class="card-title">Recursos Mais Solicitados</div>
         <div style="display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:20px">
           @for (key of resKeys; track key) {
@@ -75,7 +76,7 @@
       </div>
 
       <!-- Por setor -->
-      <div class="card" style="overflow:visible">
+      <div class="card card-clickable" style="overflow:visible" (click)="openChart('departments')">
         <div class="card-title">Horas Extras por Setor</div>
         <div style="display:flex;align-items:flex-end;gap:4px;height:160px;padding-top:20px;overflow:visible">
           @for (entry of entries(data.departmentCounts); track entry[0]) {
@@ -94,7 +95,7 @@
     <!-- Charts row 2 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
       <!-- Horários -->
-      <div class="card">
+      <div class="card card-clickable" (click)="openChart('permanencia')">
         <div class="card-title">Distribuição de Horários</div>
         <div class="bar-chart">
           @for (entry of entries(data.permanenciaCounts); track entry[0]) {
@@ -112,7 +113,7 @@
       </div>
 
       <!-- Top colaboradores -->
-      <div class="card" style="overflow:visible">
+      <div class="card card-clickable" style="overflow:visible" (click)="openChart('collaborators')">
         <div class="card-title">Ranking de Colaboradores</div>
         @if (data.topCollaborators.length > 0) {
           <div style="display:flex;align-items:flex-end;gap:4px;height:160px;padding-top:20px;overflow:visible">
@@ -133,8 +134,49 @@
       </div>
     </div>
 
+    <!-- Charts row 3 — Terceirizados -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+      <!-- Recursos para terceirizados -->
+      <div class="card card-clickable" (click)="openChart('outsourcedResources')">
+        <div class="card-title">Recursos Fornecidos a Terceirizados</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:20px">
+          @for (key of resKeys; track key) {
+            <div class="col-item" [attr.data-tooltip]="resCfg[key].label">
+              <div class="col-val">{{ data.outsourcedResourceCounts[key] }}</div>
+              <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                <div style="width:100%;border-radius:6px 6px 0 0;transition:height .3s"
+                     [style.height.%]="pct(data.outsourcedResourceCounts[key], maxOf(data.outsourcedResourceCounts)) || 4"
+                     [style.background]="resCfg[key].color"></div>
+              </div>
+              <mat-icon class="icon-sm" [style.color]="resCfg[key].color">{{ resCfg[key].icon }}</mat-icon>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Por empresa terceirizada -->
+      <div class="card card-clickable" style="overflow:visible" (click)="openChart('companies')">
+        <div class="card-title">Solicitações por Empresa Terceirizada</div>
+        @if (entries(data.companyCounts).length > 0) {
+          <div style="display:flex;align-items:flex-end;gap:4px;height:160px;padding-top:20px;overflow:visible">
+            @for (entry of entries(data.companyCounts); track entry[0]) {
+              <div class="col-item" style="flex:1;min-width:0" [attr.data-tooltip]="entry[0]">
+                <div class="col-val">{{ entry[1] }}</div>
+                <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                  <div style="width:100%;border-radius:6px 6px 0 0;background:var(--purple);transition:height .3s"
+                       [style.height.%]="pct(entry[1], maxOf(data.companyCounts)) || 4"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty"><div class="empty-text">Sem terceirizados no período</div></div>
+        }
+      </div>
+    </div>
+
     <!-- Tendência 7 dias -->
-    <div class="card">
+    <div class="card card-clickable" (click)="openChart('trend')">
       <div class="card-title">Tendência — Últimos 7 Dias</div>
       @if (data.weekTrend.length > 0) {
         <div style="display:flex;align-items:flex-end;gap:12px;height:140px">
@@ -153,4 +195,160 @@
       }
     </div>
   </div>
+
+  <!-- ── Modal Gráfico Individual ─────────────────────────────────────────── -->
+  @if (expandedChart) {
+    <div class="modal-overlay" (click)="closeChart()">
+      <div class="modal-box" style="max-width:720px" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <mat-icon style="color:var(--primary)">{{ modalMeta?.icon }}</mat-icon>
+            <span>{{ modalMeta?.title }}</span>
+          </div>
+          <button class="modal-close" (click)="closeChart()"><mat-icon class="icon-sm">close</mat-icon></button>
+        </div>
+
+        @if (expandedChart !== 'trend') {
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+            <div style="min-width:160px">
+              <app-date-picker [value]="modalFrom" (valueChange)="modalFrom = $event; loadModalData()" placeholder="Data inicial"></app-date-picker>
+            </div>
+            <span style="color:var(--t3);font-size:13px">—</span>
+            <div style="min-width:160px">
+              <app-date-picker [value]="modalTo" (valueChange)="modalTo = $event; loadModalData()" placeholder="Data final"></app-date-picker>
+            </div>
+            @if (modalFrom || modalTo) {
+              <button class="btn btn-sm btn-secondary" (click)="clearModalPeriod()">
+                <mat-icon class="icon-sm">close</mat-icon>
+              </button>
+            }
+          </div>
+        } @else {
+          <p style="font-size:12px;color:var(--t3);margin-bottom:16px">Este gráfico sempre exibe os últimos 7 dias corridos, sem filtro de período.</p>
+        }
+
+        @if (modalLoading || !modalData) {
+          <div class="empty" style="padding:40px 0"><div class="empty-text">Carregando...</div></div>
+        } @else {
+          @switch (expandedChart) {
+            @case ('resources') {
+              <div style="display:flex;align-items:flex-end;gap:14px;height:280px;padding-top:20px">
+                @for (key of resKeys; track key) {
+                  <div class="col-item" [attr.data-tooltip]="resCfg[key].label">
+                    <div class="col-val">{{ modalData.resourceCounts[key] }}</div>
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                      <div style="width:100%;border-radius:6px 6px 0 0;transition:height .3s"
+                           [style.height.%]="pct(modalData.resourceCounts[key], maxOf(modalData.resourceCounts)) || 4"
+                           [style.background]="resCfg[key].color"></div>
+                    </div>
+                    <mat-icon class="icon-sm" [style.color]="resCfg[key].color">{{ resCfg[key].icon }}</mat-icon>
+                    <div class="col-label">{{ resCfg[key].label }}</div>
+                  </div>
+                }
+              </div>
+            }
+            @case ('departments') {
+              <div style="display:flex;align-items:flex-end;gap:6px;height:280px;padding-top:20px;overflow:visible">
+                @for (entry of entries(modalData.departmentCounts); track entry[0]) {
+                  <div class="col-item" style="flex:1;min-width:0" [attr.data-tooltip]="entry[0]">
+                    <div class="col-val">{{ entry[1] }}</div>
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                      <div style="width:100%;border-radius:6px 6px 0 0;background:var(--primary);transition:height .3s"
+                           [style.height.%]="pct(entry[1], maxOf(modalData.departmentCounts)) || 4"></div>
+                    </div>
+                    <div class="col-label">{{ entry[0] }}</div>
+                  </div>
+                }
+              </div>
+            }
+            @case ('permanencia') {
+              <div class="bar-chart">
+                @for (entry of entries(modalData.permanenciaCounts); track entry[0]) {
+                  <div class="bar-item">
+                    <div class="bar-meta">
+                      <span class="bar-label">{{ permLabel(entry[0]) }}</span>
+                      <span class="bar-val">{{ entry[1] }}</span>
+                    </div>
+                    <div class="bar-track">
+                      <div class="bar-fill" [style.width.%]="pct(entry[1], maxOf(modalData.permanenciaCounts))" style="background:var(--green)"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+            @case ('collaborators') {
+              @if (modalData.topCollaborators.length > 0) {
+                <div style="display:flex;align-items:flex-end;gap:6px;height:280px;padding-top:20px;overflow:visible">
+                  @for (c of modalData.topCollaborators; track c.name) {
+                    <div class="col-item" style="flex:1;min-width:0" [attr.data-tooltip]="c.name">
+                      <div class="col-val">{{ c.count }}</div>
+                      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                        <div style="width:100%;border-radius:6px 6px 0 0;background:var(--purple);transition:height .3s"
+                             [style.height.%]="pct(c.count, modalData.topCollaborators[0].count) || 4"></div>
+                      </div>
+                      <div class="avatar" style="width:28px;height:28px;font-size:11px;font-weight:700">{{ initials(c.name) }}</div>
+                      <div class="col-label">{{ c.name }}</div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty"><div class="empty-text">Sem dados no período</div></div>
+              }
+            }
+            @case ('outsourcedResources') {
+              <div style="display:flex;align-items:flex-end;gap:14px;height:280px;padding-top:20px">
+                @for (key of resKeys; track key) {
+                  <div class="col-item" [attr.data-tooltip]="resCfg[key].label">
+                    <div class="col-val">{{ modalData.outsourcedResourceCounts[key] }}</div>
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                      <div style="width:100%;border-radius:6px 6px 0 0;transition:height .3s"
+                           [style.height.%]="pct(modalData.outsourcedResourceCounts[key], maxOf(modalData.outsourcedResourceCounts)) || 4"
+                           [style.background]="resCfg[key].color"></div>
+                    </div>
+                    <mat-icon class="icon-sm" [style.color]="resCfg[key].color">{{ resCfg[key].icon }}</mat-icon>
+                    <div class="col-label">{{ resCfg[key].label }}</div>
+                  </div>
+                }
+              </div>
+            }
+            @case ('companies') {
+              @if (entries(modalData.companyCounts).length > 0) {
+                <div style="display:flex;align-items:flex-end;gap:6px;height:280px;padding-top:20px;overflow:visible">
+                  @for (entry of entries(modalData.companyCounts); track entry[0]) {
+                    <div class="col-item" style="flex:1;min-width:0" [attr.data-tooltip]="entry[0]">
+                      <div class="col-val">{{ entry[1] }}</div>
+                      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                        <div style="width:100%;border-radius:6px 6px 0 0;background:var(--purple);transition:height .3s"
+                             [style.height.%]="pct(entry[1], maxOf(modalData.companyCounts)) || 4"></div>
+                      </div>
+                      <div class="col-label">{{ entry[0] }}</div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty"><div class="empty-text">Sem terceirizados no período</div></div>
+              }
+            }
+            @case ('trend') {
+              @if (modalData.weekTrend.length > 0) {
+                <div style="display:flex;align-items:flex-end;gap:16px;height:260px">
+                  @for (w of modalData.weekTrend; track w.date) {
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%">
+                      <div style="font-size:14px;font-weight:700;color:var(--t1)">{{ w.count || '' }}</div>
+                      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+                        <div style="width:100%;border-radius:6px 6px 0 0;background:var(--primary);"
+                             [style.height.%]="trendBarPctIn(w.count, modalData.weekTrend)"
+                             [style.opacity]="w.date === today ? 1 : 0.6"></div>
+                      </div>
+                      <div style="font-size:12px;color:var(--t3);text-align:center;line-height:1.3">{{ w.label }}</div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          }
+        }
+      </div>
+    </div>
+  }
 }

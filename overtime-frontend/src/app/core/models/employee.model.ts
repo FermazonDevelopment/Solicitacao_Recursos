@@ -4,4 +4,6 @@ export interface Employee {
   department: string;
   address: string;
   registration: string;
+  outsourced: boolean;
+  companyName?: string;
 }

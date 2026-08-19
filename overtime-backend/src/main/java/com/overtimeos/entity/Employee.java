@@ -29,4 +29,10 @@ public class Employee {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @Column(name = "is_outsourced", nullable = false)
+    private boolean outsourced = false;
+
+    @Column(name = "company_name", length = 100)
+    private String companyName;
 }

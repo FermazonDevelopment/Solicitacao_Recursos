@@ -17,7 +17,19 @@ const RES_CFG: Record<string, { label: string; icon: string; color: string }> = 
 };
 
 const PERM_LABELS: Record<string, string> = {
-  '19:30': 'Até 19:30', '21:00': 'Até 21:00', 'until12': 'Até 12h', 'after12': 'Após 12h'
+  '19:30': 'Até 19:30', '21:00': 'Até 21:00', 'until12': 'Até 12h', 'after12': 'Após 12h', 'especial': 'Jornada Especial'
+};
+
+type ChartKey = 'resources' | 'departments' | 'permanencia' | 'collaborators' | 'trend' | 'outsourcedResources' | 'companies';
+
+const CHART_META: Record<ChartKey, { title: string; icon: string }> = {
+  resources:            { title: 'Recursos Mais Solicitados',        icon: 'bar_chart'    },
+  departments:          { title: 'Horas Extras por Setor',           icon: 'apartment'    },
+  permanencia:          { title: 'Distribuição de Horários',         icon: 'schedule'     },
+  collaborators:        { title: 'Ranking de Colaboradores',         icon: 'emoji_events' },
+  trend:                { title: 'Tendência — Últimos 7 Dias',       icon: 'trending_up'  },
+  outsourcedResources:  { title: 'Recursos Fornecidos a Terceirizados', icon: 'engineering'  },
+  companies:            { title: 'Solicitações por Empresa Terceirizada', icon: 'domain' },
 };
 
 @Component({
@@ -39,6 +51,12 @@ export class DashboardComponent implements OnInit {
   filterFrom = '';
   filterTo   = '';
 
+  expandedChart: ChartKey | null = null;
+  modalData: DashboardData | null = null;
+  modalLoading = false;
+  modalFrom = '';
+  modalTo   = '';
+
   ngOnInit(): void { this.load(); }
 
   load(): void {
@@ -53,6 +71,37 @@ export class DashboardComponent implements OnInit {
     this.filterFrom = '';
     this.filterTo   = '';
     this.load();
+  }
+
+  get modalMeta(): { title: string; icon: string } | null {
+    return this.expandedChart ? CHART_META[this.expandedChart] : null;
+  }
+
+  openChart(key: ChartKey): void {
+    this.expandedChart = key;
+    this.modalFrom = this.filterFrom;
+    this.modalTo   = this.filterTo;
+    this.modalData = this.data;
+    if (key !== 'trend') this.loadModalData();
+  }
+
+  closeChart(): void {
+    this.expandedChart = null;
+    this.modalData = null;
+  }
+
+  loadModalData(): void {
+    this.modalLoading = true;
+    this.reqSvc.getDashboard(this.modalFrom || undefined, this.modalTo || undefined).subscribe({
+      next: d => { this.modalData = d; this.modalLoading = false; },
+      error: () => { this.toast.show('Erro ao carregar período', 'error'); this.modalLoading = false; }
+    });
+  }
+
+  clearModalPeriod(): void {
+    this.modalFrom = '';
+    this.modalTo   = '';
+    this.loadModalData();
   }
 
   maxOf(obj: Record<string, number>): number {
@@ -110,6 +159,8 @@ export class DashboardComponent implements OnInit {
           return {
             'Nome':              r.name,
             'Departamento':      r.department,
+            'Terceirizado':      r.outsourced ? 'Sim' : 'Não',
+            'Empresa':           r.companyName ?? '',
             'Endereço':          r.address ?? '',
             'Data':              r.date.split('-').reverse().join('/'),
             'Permanência':       this.permLabel(r.permanencia),
@@ -131,7 +182,7 @@ export class DashboardComponent implements OnInit {
 
         const ws = XLSX.utils.json_to_sheet(rows);
         ws['!cols'] = [
-          { wch: 35 }, { wch: 20 }, { wch: 45 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+          { wch: 35 }, { wch: 20 }, { wch: 12 }, { wch: 25 }, { wch: 45 }, { wch: 12 }, { wch: 12 },
           { wch: 8  }, { wch: 8  }, { wch: 8  }, { wch: 8  }, { wch: 8  }, { wch: 8  },
           { wch: 14 }, { wch: 40 }, { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 30 },
         ];
@@ -149,7 +200,11 @@ export class DashboardComponent implements OnInit {
 
   trendBarPct(count: number): number {
     if (!this.data) return 4;
-    const maxW = Math.max(...this.data.weekTrend.map(w => w.count), 1);
+    return this.trendBarPctIn(count, this.data.weekTrend);
+  }
+
+  trendBarPctIn(count: number, trend: { count: number }[]): number {
+    const maxW = Math.max(...trend.map(w => w.count), 1);
     return Math.max(Math.round(count / maxW * 100), 4);
   }
 }

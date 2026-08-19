@@ -47,6 +47,31 @@ export class FormComponent implements OnInit {
   employees: Employee[] = [];
   msQuery = '';
 
+  showOutsourcedModal = false;
+  newOutsourcedNames: string[] = [''];
+  newOutsourcedCompany = '';
+  useNewCompany = false;
+  outsourcedSearchQuery = '';
+
+  get outsourcedCompanies(): string[] {
+    const set = new Set(
+      this.employees.filter(e => e.outsourced && e.companyName).map(e => e.companyName as string)
+    );
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }
+
+  existingCompanyCollaborators(company: string): Employee[] {
+    const q = this.outsourcedSearchQuery.trim().toLowerCase();
+    return this.employees
+      .filter(e => e.outsourced && e.companyName === company)
+      .filter(e => !q || e.name.toLowerCase().includes(q))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  get hasPendingOutsourcedNames(): boolean {
+    return this.newOutsourcedNames.some(n => n.trim());
+  }
+
   fDate = '';
   dayType = '';
   permanencia = '';
@@ -57,6 +82,7 @@ export class FormComponent implements OnInit {
   resKeys = Object.keys(RES_CFG);
 
   get availableResKeys(): string[] {
+    if (this.permanencia === 'especial') return ['almoco', 'rota', 'uber'];
     if (this.dayType === 'weekday') {
       if (this.permanencia === '19:30') return ['lanche'];
       if (this.permanencia === '21:00') return ['janta', 'rota', 'uber'];
@@ -65,6 +91,12 @@ export class FormComponent implements OnInit {
       if (this.permanencia === 'after12') return ['cafe', 'almoco'];
     }
     return [];
+  }
+
+  availableResKeysFor(id: number): string[] {
+    const emp = this.getEmployee(id);
+    if (!emp?.outsourced) return this.availableResKeys;
+    return this.availableResKeys.filter(k => k !== 'rota' && k !== 'uber');
   }
 
   get isAdmin(): boolean { return this.auth.isAdmin(); }
@@ -97,16 +129,18 @@ export class FormComponent implements OnInit {
     return (HOLIDAYS.has(ds) || dow === 0 || dow === 6) ? 'weekend' : 'weekday';
   }
 
-  calcResources(dayType: string, perm: string, veiculo: boolean): string[] {
+  calcResources(dayType: string, perm: string, veiculo: boolean, outsourced = false): string[] {
     const res = new Set<string>();
-    if (dayType === 'weekday') {
+    if (perm === 'especial') {
+      res.add('almoco'); res.add('rota'); res.add('uber');
+    } else if (dayType === 'weekday') {
       if (perm === '19:30') res.add('lanche');
       if (perm === '21:00') { res.add('janta'); res.add('rota'); res.add('uber'); }
     } else {
       res.add('cafe');
       if (perm === 'after12') res.add('almoco');
     }
-    if (veiculo) { res.delete('rota'); res.delete('uber'); }
+    if (veiculo || outsourced) { res.delete('rota'); res.delete('uber'); }
     return [...res];
   }
 
@@ -120,7 +154,8 @@ export class FormComponent implements OnInit {
   onPermChange(): void {
     this.selCollabs.forEach(id => {
       if (this.collabData[id]) {
-        this.collabData[id].resources = this.calcResources(this.dayType, this.permanencia, this.collabData[id].veiculo);
+        const outsourced = !!this.getEmployee(id)?.outsourced;
+        this.collabData[id].resources = this.calcResources(this.dayType, this.permanencia, this.collabData[id].veiculo, outsourced);
       }
     });
   }
@@ -128,8 +163,9 @@ export class FormComponent implements OnInit {
   toggleCollab(id: number): void {
     const idx = this.selCollabs.indexOf(id);
     if (idx === -1) {
+      const outsourced = !!this.getEmployee(id)?.outsourced;
       this.selCollabs.push(id);
-      this.collabData[id] = { motivo: '', veiculo: false, resources: this.calcResources(this.dayType, this.permanencia, false) };
+      this.collabData[id] = { motivo: '', veiculo: false, resources: this.calcResources(this.dayType, this.permanencia, false, outsourced) };
     } else {
       this.selCollabs.splice(idx, 1);
       delete this.collabData[id];
@@ -144,7 +180,8 @@ export class FormComponent implements OnInit {
   toggleVeiculo(id: number): void {
     if (!this.collabData[id]) return;
     this.collabData[id].veiculo = !this.collabData[id].veiculo;
-    this.collabData[id].resources = this.calcResources(this.dayType, this.permanencia, this.collabData[id].veiculo);
+    const outsourced = !!this.getEmployee(id)?.outsourced;
+    this.collabData[id].resources = this.calcResources(this.dayType, this.permanencia, this.collabData[id].veiculo, outsourced);
   }
 
   isResLocked(id: number, key: string): boolean {
@@ -162,12 +199,65 @@ export class FormComponent implements OnInit {
     return this.employees.find(e => e.id === id);
   }
 
+  openOutsourcedModal(): void {
+    this.newOutsourcedNames = [''];
+    this.newOutsourcedCompany = '';
+    this.useNewCompany = this.outsourcedCompanies.length === 0;
+    this.outsourcedSearchQuery = '';
+    this.showOutsourcedModal = true;
+  }
+
+  toggleNewCompany(useNew: boolean): void {
+    this.useNewCompany = useNew;
+    this.newOutsourcedCompany = '';
+    this.outsourcedSearchQuery = '';
+  }
+
+  closeOutsourcedModal(): void {
+    this.showOutsourcedModal = false;
+  }
+
+  addOutsourcedName(): void {
+    this.newOutsourcedNames.push('');
+  }
+
+  removeOutsourcedName(index: number): void {
+    this.newOutsourcedNames.splice(index, 1);
+    if (!this.newOutsourcedNames.length) this.newOutsourcedNames.push('');
+  }
+
+  submitOutsourced(): void {
+    const company = this.newOutsourcedCompany.trim();
+    const names = this.newOutsourcedNames.map(n => n.trim()).filter(n => !!n);
+
+    if (!names.length) {
+      // Nenhum nome novo — as seleções de colaboradores existentes já foram aplicadas ao marcar o checkbox.
+      this.showOutsourcedModal = false;
+      return;
+    }
+    if (!company) {
+      this.toast.show('Informe a empresa', 'error');
+      return;
+    }
+    this.empSvc.createOutsourced(names, company).subscribe({
+      next: emps => {
+        this.employees = [...this.employees, ...emps];
+        this.showOutsourcedModal = false;
+        this.toast.show(`${emps.length} terceirizado(s) cadastrado(s) com sucesso!`);
+        if (this.dayType && this.permanencia) {
+          emps.forEach(emp => this.toggleCollab(emp.id));
+        }
+      },
+      error: err => this.toast.show(err.error?.error ?? 'Erro ao cadastrar terceirizado(s)', 'error')
+    });
+  }
+
   initials(name: string): string {
     return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   }
 
   permLabel(p: string): string {
-    const map: Record<string, string> = { '19:30': 'Até 19:30', '21:00': 'Até 21:00', 'until12': 'Até 12h', 'after12': 'Após 12h' };
+    const map: Record<string, string> = { '19:30': 'Até 19:30', '21:00': 'Até 21:00', 'until12': 'Até 12h', 'after12': 'Após 12h', 'especial': 'Jornada Especial' };
     return map[p] ?? p;
   }
 

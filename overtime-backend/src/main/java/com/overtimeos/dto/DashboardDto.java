@@ -16,6 +16,8 @@ public class DashboardDto {
     private Map<String, Long> resourceCounts;
     private Map<String, Long> departmentCounts;
     private Map<String, Long> permanenciaCounts;
+    private Map<String, Long> outsourcedResourceCounts;
+    private Map<String, Long> companyCounts;
     private List<CollaboratorRankDto> topCollaborators;
     private List<DayTrendDto> weekTrend;
 

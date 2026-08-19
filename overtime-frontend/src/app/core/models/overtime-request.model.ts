@@ -5,6 +5,8 @@ export interface OvertimeRequest {
   department: string;
   registration: string;
   address: string;
+  outsourced: boolean;
+  companyName?: string;
   date: string;
   dayType: 'weekday' | 'weekend';
   permanencia: string;
@@ -39,6 +41,8 @@ export interface DashboardData {
   resourceCounts: Record<string, number>;
   departmentCounts: Record<string, number>;
   permanenciaCounts: Record<string, number>;
+  outsourcedResourceCounts: Record<string, number>;
+  companyCounts: Record<string, number>;
   topCollaborators: { name: string; count: number }[];
   weekTrend: { date: string; label: string; count: number }[];
 }

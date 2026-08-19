@@ -40,7 +40,19 @@
         <option value="CONFIRMADO">Confirmados</option>
         <option value="CANCELADO">Cancelados</option>
       </select>
-      @if (fltDept || fltDate || fltStatus) {
+      <select class="filter-select" [(ngModel)]="fltCompany" (change)="currentPage = 1">
+        <option value="">Todos (próprios + terceirizados)</option>
+        <option value="INTERNAL">Somente colaboradores próprios</option>
+        <option value="OUTSOURCED">Somente terceirizados (todas empresas)</option>
+        @if (companies.length > 0) {
+          <optgroup label="Empresa terceirizada">
+            @for (c of companies; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </optgroup>
+        }
+      </select>
+      @if (fltDept || fltDate || fltStatus || fltCompany) {
         <button class="btn btn-sm btn-secondary" (click)="clearFilters()">
           <mat-icon class="icon-sm">close</mat-icon> Limpar
         </button>
@@ -102,8 +114,13 @@
                   <div style="display:flex;align-items:center;gap:8px">
                     <div class="avatar" style="width:28px;height:28px;font-size:11px">{{ initials(r.name) }}</div>
                     <div>
-                      <div style="font-weight:500">{{ r.name }}</div>
-                      <div style="font-size:11px;color:var(--t3)">Reg. {{ r.registration }}</div>
+                      <div style="font-weight:500;display:flex;align-items:center;gap:6px">
+                        {{ r.name }}
+                        @if (r.outsourced) { <span class="badge badge-outsourced">Terceirizado</span> }
+                      </div>
+                      <div style="font-size:11px;color:var(--t3)">
+                        @if (r.outsourced) { {{ r.companyName }} } @else { Reg. {{ r.registration }} }
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -241,7 +258,7 @@
                      [class.ri-lanche]="editState.permanencia === opt.value && opt.value === '19:30'"
                      [class.ri-janta]="editState.permanencia === opt.value && opt.value === '21:00'"
                      [class.ri-cafe]="editState.permanencia === opt.value && opt.value === 'until12'"
-                     [class.ri-almoco]="editState.permanencia === opt.value && opt.value === 'after12'"
+                     [class.ri-almoco]="editState.permanencia === opt.value && (opt.value === 'after12' || opt.value === 'especial')"
                      style="cursor:pointer;font-size:13px;padding:8px 14px">
                 <input type="radio" name="editPerm" [value]="opt.value" [(ngModel)]="editState.permanencia"
                        (change)="onEditPermChange()" style="display:none" />

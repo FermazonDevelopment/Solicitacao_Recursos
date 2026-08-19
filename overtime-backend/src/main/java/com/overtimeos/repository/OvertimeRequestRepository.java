@@ -75,6 +75,9 @@ public interface OvertimeRequestRepository extends JpaRepository<OvertimeRequest
     @Query("SELECT COUNT(r) FROM OvertimeRequest r WHERE r.date = :date")
     long countByDate(@Param("date") LocalDate date);
 
+    @Query("SELECT COUNT(r) FROM OvertimeRequest r WHERE r.status = 'PENDENTE'")
+    long countPending();
+
     @Query("""
         SELECT r FROM OvertimeRequest r
         JOIN FETCH r.employee e

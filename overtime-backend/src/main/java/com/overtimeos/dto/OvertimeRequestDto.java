@@ -15,6 +15,8 @@ public class OvertimeRequestDto {
     private final String department;
     private final String registration;
     private final String address;
+    private final boolean outsourced;
+    private final String companyName;
     private final LocalDate date;
     private final String dayType;
     private final String permanencia;
@@ -34,6 +36,8 @@ public class OvertimeRequestDto {
         this.department         = r.getEmployee().getDepartment().getName();
         this.registration       = r.getEmployee().getRegistration();
         this.address            = r.getEmployee().getAddress();
+        this.outsourced         = r.getEmployee().isOutsourced();
+        this.companyName        = r.getEmployee().getCompanyName();
         this.date               = r.getDate();
         this.dayType            = r.getDayType();
         this.permanencia        = r.getPermanencia();

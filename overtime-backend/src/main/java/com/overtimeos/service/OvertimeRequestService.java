@@ -69,6 +69,12 @@ public class OvertimeRequestService {
                     employee.getName() + " já possui registro para " + date);
             }
 
+            if (employee.isOutsourced()
+                    && entry.getResources().stream().anyMatch(r -> r.equals("rota") || r.equals("uber"))) {
+                throw new IllegalArgumentException(
+                    employee.getName() + " é terceirizado e não pode solicitar Rota ou Uber");
+            }
+
             OvertimeRequest req = new OvertimeRequest();
             req.setId("req-" + ts + "-" + entry.getEmployeeId());
             req.setEmployee(employee);

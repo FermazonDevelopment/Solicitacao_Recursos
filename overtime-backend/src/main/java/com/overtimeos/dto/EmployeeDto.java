@@ -10,6 +10,8 @@ public class EmployeeDto {
     private final String department;
     private final String address;
     private final String registration;
+    private final boolean outsourced;
+    private final String companyName;
 
     public EmployeeDto(Employee e) {
         this.id           = e.getId();
@@ -17,5 +19,7 @@ public class EmployeeDto {
         this.department   = e.getDepartment().getName();
         this.address      = e.getAddress();
         this.registration = e.getRegistration();
+        this.outsourced   = e.isOutsourced();
+        this.companyName  = e.getCompanyName();
     }
 }

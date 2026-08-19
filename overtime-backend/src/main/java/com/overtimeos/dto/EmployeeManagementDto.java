@@ -8,10 +8,13 @@ public record EmployeeManagementDto(
         String department,
         String registration,
         String address,
-        boolean active
+        boolean active,
+        boolean outsourced,
+        String companyName
 ) {
     public EmployeeManagementDto(Employee e) {
         this(e.getId(), e.getName(), e.getDepartment().getName(),
-                e.getRegistration(), e.getAddress(), e.isActive());
+                e.getRegistration(), e.getAddress(), e.isActive(),
+                e.isOutsourced(), e.getCompanyName());
     }
 }

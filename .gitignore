@@ -5,3 +5,6 @@
 gerar_apresentacao.py
 OvertimeOS_Infraestrutura.pptx
 /index.html
+
+# Logs de execução local
+*.log
