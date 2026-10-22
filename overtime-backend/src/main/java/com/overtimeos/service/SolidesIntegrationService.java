@@ -119,6 +119,7 @@ public class SolidesIntegrationService {
         employee.setName(dados.getNome().toUpperCase().trim());
         employee.setDepartment(department);
         employee.setRegistration(registration);
+        employee.setSolidesRegistration(normalizeMatricula(dados.getMatricula()));
         employee.setAddress(address);
 
         employeeRepository.save(employee);
@@ -131,6 +132,22 @@ public class SolidesIntegrationService {
 
     private boolean updateEmployee(Employee employee, SolidesWebhookPayload.Dados dados) {
         boolean changed = false;
+
+        // Preenche/corrige a matrícula real do Solides usada no matching do webhook
+        String solidesReg = normalizeMatricula(dados.getMatricula());
+        if (solidesReg != null && !solidesReg.equals(employee.getSolidesRegistration())) {
+            log.info("Solides webhook: matrícula Solides de '{}': '{}' -> '{}'",
+                    employee.getName(), employee.getSolidesRegistration(), solidesReg);
+            employee.setSolidesRegistration(solidesReg);
+            changed = true;
+        }
+
+        // Reativa colaborador caso estivesse inativo no sistema
+        if (!employee.isActive()) {
+            employee.setActive(true);
+            changed = true;
+            log.info("Solides webhook: reativando colaborador '{}' (estava inativo).", employee.getName());
+        }
 
         // Atualiza endereço
         if (dados.getEndereco() != null) {
@@ -195,9 +212,10 @@ public class SolidesIntegrationService {
     private Employee findEmployee(String matricula, String nome) {
         List<Employee> all = employeeRepository.findAll();
 
-        if (matricula != null && !matricula.isBlank()) {
+        String normalizedMatricula = normalizeMatricula(matricula);
+        if (normalizedMatricula != null) {
             Employee byReg = all.stream()
-                    .filter(e -> matricula.trim().equals(e.getRegistration()))
+                    .filter(e -> normalizedMatricula.equals(e.getSolidesRegistration()))
                     .findFirst().orElse(null);
             if (byReg != null) return byReg;
         }
@@ -206,6 +224,10 @@ public class SolidesIntegrationService {
         return all.stream()
                 .filter(e -> e.getName().toUpperCase().trim().equals(key))
                 .findFirst().orElse(null);
+    }
+
+    private String normalizeMatricula(String matricula) {
+        return (matricula == null || matricula.isBlank()) ? null : matricula.trim();
     }
 
     // ── Sync completo via API ─────────────────────────────────────────────────
@@ -233,13 +255,40 @@ public class SolidesIntegrationService {
             SolidesCollaboradorDto solides = byName.get(emp.getName().toUpperCase().trim());
             if (solides == null) continue;
 
-            String newAddress = solides.buildAddress();
-            if (newAddress == null || Objects.equals(emp.getAddress(), newAddress)) continue;
+            boolean changed = false;
 
-            log.info("Solides sync: '{}' -> '{}'", emp.getName(), newAddress);
-            emp.setAddress(newAddress);
-            employeeRepository.save(emp);
-            updated++;
+            String newAddress = solides.buildAddress();
+            if (newAddress != null && !Objects.equals(emp.getAddress(), newAddress)) {
+                log.info("Solides sync: endereço de '{}' -> '{}'", emp.getName(), newAddress);
+                emp.setAddress(newAddress);
+                changed = true;
+            }
+
+            String solidesReg = normalizeMatricula(solides.getRegistration());
+            if (solidesReg != null && !solidesReg.equals(emp.getSolidesRegistration())) {
+                log.info("Solides sync: matrícula Solides de '{}': '{}' -> '{}'",
+                        emp.getName(), emp.getSolidesRegistration(), solidesReg);
+                emp.setSolidesRegistration(solidesReg);
+                changed = true;
+            }
+
+            String newDeptName = solides.getDepartamento() != null ? solides.getDepartamento().getNome() : null;
+            if (newDeptName != null && !newDeptName.isBlank()) {
+                String normalizedDept = newDeptName.toUpperCase().trim();
+                String currentDept = emp.getDepartment().getName().toUpperCase().trim();
+                if (!currentDept.equals(normalizedDept)) {
+                    Department newDept = findOrCreateDepartment(normalizedDept);
+                    log.info("Solides sync: departamento de '{}': '{}' -> '{}'",
+                            emp.getName(), emp.getDepartment().getName(), newDept.getName());
+                    emp.setDepartment(newDept);
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                employeeRepository.save(emp);
+                updated++;
+            }
         }
 
         log.info("Solides: sincronização completa. {} endereço(s) atualizado(s).", updated);

@@ -27,6 +27,9 @@ public class Employee {
     @Column(nullable = false, unique = true, length = 20)
     private String registration;
 
+    @Column(name = "solides_registration", length = 20)
+    private String solidesRegistration;
+
     @Column(nullable = false)
     private boolean active = true;
 
