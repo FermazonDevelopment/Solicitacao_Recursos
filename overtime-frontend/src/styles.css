@@ -392,6 +392,22 @@ tr.row-selected td { background: var(--primary-dim) !important; }
 .bar-track { height: 8px; background: var(--chart-track); border-radius: 999px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 999px; background: var(--chart-1); transition: width .5s ease; }
 
+/* Ranking horizontal (muitas categorias com nomes longos) */
+.rank-list { display: flex; flex-direction: column; gap: 9px; }
+.rank-row {
+  display: grid; grid-template-columns: minmax(90px, 36%) 1fr 36px; align-items: center; gap: 10px;
+  font-size: 12.5px; border-radius: 6px; padding: 2px 4px; margin: 0 -4px;
+  transition: background var(--transicao);
+}
+.rank-row:hover { background: var(--elevated); }
+.rank-row:hover .rank-fill { background: var(--fz-vermelho); }
+.rank-label { color: var(--t2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-track { height: 8px; background: var(--chart-track); border-radius: 999px; overflow: hidden; }
+.rank-fill { height: 100%; border-radius: 999px; background: var(--chart-1); transition: width .5s ease, background var(--transicao); }
+.rank-fill.alt { background: var(--chart-2); }
+.rank-val { text-align: right; color: var(--heading); font-weight: 700; font-variant-numeric: tabular-nums; }
+.rank-more { margin-top: 10px; font-size: 12px; color: var(--t3); }
+
 .chart-cols { display: flex; align-items: flex-end; gap: 6px; padding-top: 20px; overflow: visible; border-bottom: 1px solid var(--border); }
 .col-bar { width: 100%; border-radius: 5px 5px 0 0; background: var(--chart-1); transition: height .3s ease, background var(--transicao); }
 .col-bar.alt { background: var(--chart-2); }

@@ -116,6 +116,11 @@ export class DashboardComponent implements OnInit {
     return Object.entries(obj).sort((a, b) => b[1] - a[1]);
   }
 
+  /** Largura da barra horizontal: proporcional, mas com um mínimo visível para valores > 0. */
+  barPct(val: number, max: number): number {
+    return val > 0 ? Math.max(val / max * 100, 2) : 0;
+  }
+
   initials(name: string): string {
     return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   }

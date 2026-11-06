@@ -77,17 +77,24 @@
       <!-- Por setor -->
       <div class="card card-clickable" style="overflow:visible" (click)="openChart('departments')">
         <div class="card-title">Horas Extras por Setor</div>
-        <div class="chart-cols" style="gap:4px;height:160px">
-          @for (entry of entries(data.departmentCounts); track entry[0]) {
-            <div class="col-item" [attr.data-tooltip]="entry[0]">
-              <div class="col-val">{{ entry[1] }}</div>
-              <div style="flex:1;width:100%;display:flex;align-items:flex-end">
-                <div class="col-bar"
-                     [style.height.%]="pct(entry[1], maxOf(data.departmentCounts)) || 4"></div>
+        @if (entries(data.departmentCounts); as depts) {
+          @if (depts.length > 0) {
+          <div class="rank-list">
+            @for (entry of depts.slice(0, 6); track entry[0]) {
+              <div class="rank-row" [title]="entry[0] + ': ' + entry[1]">
+                <span class="rank-label">{{ entry[0] }}</span>
+                <div class="rank-track"><div class="rank-fill" [style.width.%]="barPct(entry[1], depts[0][1])"></div></div>
+                <span class="rank-val">{{ entry[1] }}</span>
               </div>
-            </div>
+            }
+          </div>
+          @if (depts.length > 6) {
+            <div class="rank-more">+ {{ depts.length - 6 }} setores · clique para ver todos</div>
           }
-        </div>
+          } @else {
+          <div class="empty"><div class="empty-text">Sem dados no período</div></div>
+          }
+        }
       </div>
     </div>
 
@@ -155,20 +162,23 @@
       <!-- Por empresa terceirizada -->
       <div class="card card-clickable" style="overflow:visible" (click)="openChart('companies')">
         <div class="card-title">Solicitações por Empresa Terceirizada</div>
-        @if (entries(data.companyCounts).length > 0) {
-          <div class="chart-cols" style="gap:4px;height:160px">
-            @for (entry of entries(data.companyCounts); track entry[0]) {
-              <div class="col-item" [attr.data-tooltip]="entry[0]">
-                <div class="col-val">{{ entry[1] }}</div>
-                <div style="flex:1;width:100%;display:flex;align-items:flex-end">
-                  <div class="col-bar alt"
-                       [style.height.%]="pct(entry[1], maxOf(data.companyCounts)) || 4"></div>
-                </div>
+        @if (entries(data.companyCounts); as comps) {
+          @if (comps.length > 0) {
+          <div class="rank-list">
+            @for (entry of comps.slice(0, 6); track entry[0]) {
+              <div class="rank-row" [title]="entry[0] + ': ' + entry[1]">
+                <span class="rank-label">{{ entry[0] }}</span>
+                <div class="rank-track"><div class="rank-fill alt" [style.width.%]="barPct(entry[1], comps[0][1])"></div></div>
+                <span class="rank-val">{{ entry[1] }}</span>
               </div>
             }
           </div>
-        } @else {
+          @if (comps.length > 6) {
+            <div class="rank-more">+ {{ comps.length - 6 }} empresas · clique para ver todas</div>
+          }
+          } @else {
           <div class="empty"><div class="empty-text">Sem terceirizados no período</div></div>
+          }
         }
       </div>
     </div>
@@ -245,18 +255,21 @@
               </div>
             }
             @case ('departments') {
-              <div class="chart-cols" style="gap:6px;height:280px">
-                @for (entry of entries(modalData.departmentCounts); track entry[0]) {
-                  <div class="col-item" [attr.data-tooltip]="entry[0]">
-                    <div class="col-val">{{ entry[1] }}</div>
-                    <div style="flex:1;width:100%;display:flex;align-items:flex-end">
-                      <div class="col-bar"
-                           [style.height.%]="pct(entry[1], maxOf(modalData.departmentCounts)) || 4"></div>
+              @if (entries(modalData.departmentCounts); as mDepts) {
+                @if (mDepts.length > 0) {
+                <div class="rank-list">
+                  @for (entry of mDepts; track entry[0]) {
+                    <div class="rank-row" [title]="entry[0] + ': ' + entry[1]">
+                      <span class="rank-label">{{ entry[0] }}</span>
+                      <div class="rank-track"><div class="rank-fill" [style.width.%]="barPct(entry[1], mDepts[0][1])"></div></div>
+                      <span class="rank-val">{{ entry[1] }}</span>
                     </div>
-                    <div class="col-label">{{ entry[0] }}</div>
-                  </div>
+                  }
+                </div>
+                } @else {
+                <div class="empty"><div class="empty-text">Sem dados no período</div></div>
                 }
-              </div>
+              }
             }
             @case ('permanencia') {
               <div class="bar-chart">
@@ -308,21 +321,20 @@
               </div>
             }
             @case ('companies') {
-              @if (entries(modalData.companyCounts).length > 0) {
-                <div class="chart-cols" style="gap:6px;height:280px">
-                  @for (entry of entries(modalData.companyCounts); track entry[0]) {
-                    <div class="col-item" [attr.data-tooltip]="entry[0]">
-                      <div class="col-val">{{ entry[1] }}</div>
-                      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
-                        <div class="col-bar alt"
-                             [style.height.%]="pct(entry[1], maxOf(modalData.companyCounts)) || 4"></div>
-                      </div>
-                      <div class="col-label">{{ entry[0] }}</div>
+              @if (entries(modalData.companyCounts); as mComps) {
+                @if (mComps.length > 0) {
+                <div class="rank-list">
+                  @for (entry of mComps; track entry[0]) {
+                    <div class="rank-row" [title]="entry[0] + ': ' + entry[1]">
+                      <span class="rank-label">{{ entry[0] }}</span>
+                      <div class="rank-track"><div class="rank-fill alt" [style.width.%]="barPct(entry[1], mComps[0][1])"></div></div>
+                      <span class="rank-val">{{ entry[1] }}</span>
                     </div>
                   }
                 </div>
-              } @else {
+                } @else {
                 <div class="empty"><div class="empty-text">Sem terceirizados no período</div></div>
+                }
               }
             }
             @case ('trend') {
