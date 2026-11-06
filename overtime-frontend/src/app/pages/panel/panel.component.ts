@@ -13,12 +13,12 @@ import { DatePickerComponent } from '../../shared/date-picker/date-picker.compon
 import { environment } from '../../../environments/environment';
 
 const RES_TAGS: Record<string, { icon: string; label: string; cls: string }> = {
-  lanche: { icon: 'lunch_dining',    label: 'Lanche', cls: 'tag-yellow' },
-  janta:  { icon: 'restaurant',      label: 'Janta',  cls: 'tag-green'  },
-  rota:   { icon: 'directions_bus',  label: 'Rota',   cls: 'tag-blue'   },
-  uber:   { icon: 'local_taxi',      label: 'Uber',   cls: 'tag-purple' },
-  cafe:   { icon: 'local_cafe',      label: 'Café',   cls: 'tag-yellow' },
-  almoco: { icon: 'restaurant_menu', label: 'Almoço', cls: 'tag-green'  },
+  lanche: { icon: 'lunch_dining',    label: 'Lanche', cls: 'tag-gray' },
+  janta:  { icon: 'restaurant',      label: 'Janta',  cls: 'tag-gray'  },
+  rota:   { icon: 'directions_bus',  label: 'Rota',   cls: 'tag-gray'   },
+  uber:   { icon: 'local_taxi',      label: 'Uber',   cls: 'tag-gray' },
+  cafe:   { icon: 'local_cafe',      label: 'Café',   cls: 'tag-gray' },
+  almoco: { icon: 'restaurant_menu', label: 'Almoço', cls: 'tag-gray'  },
 };
 
 const RES_CFG: Record<string, { icon: string; label: string; cls: string }> = {
@@ -107,12 +107,12 @@ export class PanelComponent implements OnInit, OnDestroy {
     return [
       { icon: 'receipt_long',   label: 'Total',    val: all.length,                                                          color: 'var(--primary)' },
       { icon: 'schedule',       label: 'Pendentes', val: all.filter(r => r.status === 'PENDENTE').length,                   color: 'var(--yellow)'  },
-      { icon: 'lunch_dining',   label: 'Lanches', val: all.filter(r => r.resources.includes('lanche')).length, color: 'var(--yellow)'  },
-      { icon: 'restaurant',     label: 'Jantas',  val: all.filter(r => r.resources.includes('janta')).length,  color: 'var(--green)'   },
-      { icon: 'directions_bus', label: 'Rotas',   val: all.filter(r => r.resources.includes('rota')).length,   color: 'var(--blue)'    },
-      { icon: 'local_taxi',     label: 'Ubers',   val: all.filter(r => r.resources.includes('uber')).length,   color: 'var(--purple)'  },
-      { icon: 'local_cafe',     label: 'Cafés',   val: all.filter(r => r.resources.includes('cafe')).length,   color: 'var(--yellow)'  },
-      { icon: 'restaurant_menu',label: 'Almoços', val: all.filter(r => r.resources.includes('almoco')).length, color: 'var(--green)'   },
+      { icon: 'lunch_dining',   label: 'Lanches', val: all.filter(r => r.resources.includes('lanche')).length, color: 'var(--primary)'  },
+      { icon: 'restaurant',     label: 'Jantas',  val: all.filter(r => r.resources.includes('janta')).length,  color: 'var(--primary)'   },
+      { icon: 'directions_bus', label: 'Rotas',   val: all.filter(r => r.resources.includes('rota')).length,   color: 'var(--primary)'    },
+      { icon: 'local_taxi',     label: 'Ubers',   val: all.filter(r => r.resources.includes('uber')).length,   color: 'var(--primary)'  },
+      { icon: 'local_cafe',     label: 'Cafés',   val: all.filter(r => r.resources.includes('cafe')).length,   color: 'var(--primary)'  },
+      { icon: 'restaurant_menu',label: 'Almoços', val: all.filter(r => r.resources.includes('almoco')).length, color: 'var(--primary)'   },
     ];
   }
 
@@ -355,28 +355,6 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   initials(name: string): string {
     return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
-  }
-
-  private static readonly DEPT_PALETTE = [
-    { bg: 'rgba(220,38,38,.13)',   color: '#b91c1c' },  // 0 — Vermelho
-    { bg: 'rgba(37,99,235,.13)',   color: '#1e40af' },  // 1 — Azul       ← TI
-    { bg: 'rgba(5,150,105,.13)',   color: '#047857' },  // 2 — Esmeralda
-    { bg: 'rgba(234,88,12,.13)',   color: '#c2410c' },  // 3 — Laranja
-    { bg: 'rgba(124,58,237,.13)',  color: '#6d28d9' },  // 4 — Violeta
-    { bg: 'rgba(8,145,178,.13)',   color: '#0e7490' },  // 5 — Ciano
-    { bg: 'rgba(202,138,4,.13)',   color: '#a16207' },  // 6 — Âmbar
-    { bg: 'rgba(219,39,119,.13)',  color: '#9d174d' },  // 7 — Rosa
-    { bg: 'rgba(101,163,13,.13)',  color: '#4d7c0f' },  // 8 — Lima
-    { bg: 'rgba(67,56,202,.13)',   color: '#3730a3' },  // 9 — Índigo
-    { bg: 'rgba(15,118,110,.13)',  color: '#0f766e' },  // 10 — Teal
-    { bg: 'rgba(244,63,94,.13)',   color: '#be123c' },  // 11 — Rosa-forte
-  ];
-
-  deptStyle(name: string): Record<string, string> {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-    const p = PanelComponent.DEPT_PALETTE[hash % PanelComponent.DEPT_PALETTE.length];
-    return { background: p.bg, color: p.color };
   }
 
   fmtDate(ds: string): string {

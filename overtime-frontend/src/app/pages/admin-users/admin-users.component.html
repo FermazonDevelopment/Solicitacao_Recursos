@@ -3,18 +3,18 @@
 
     <!-- Cabeçalho com tabs -->
     <div style="padding:20px 24px 0;background:var(--card);border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <mat-icon style="color:var(--primary)">admin_panel_settings</mat-icon>
-        <span style="font-size:16px;font-weight:700">Gerenciamento de Usuários</span>
-        <span style="font-size:11px;background:var(--primary);color:#fff;padding:2px 8px;border-radius:4px;font-weight:600">Super-Admin</span>
+      <div class="card-title" style="margin-bottom:14px">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Usuários e departamentos
+        <span class="badge badge-super">Super-Admin</span>
       </div>
-      <div style="display:flex;gap:4px">
-        <button class="tab-pill" [class.active]="tab==='dept'" (click)="tab='dept'">
+      <div class="tabs" role="tablist">
+        <button class="tab-pill" role="tab" [attr.aria-selected]="tab==='dept'" [class.active]="tab==='dept'" (click)="tab='dept'">
           <mat-icon class="icon-sm">business</mat-icon>
           Departamentos
           <span class="count-chip">{{ departments.length }}</span>
         </button>
-        <button class="tab-pill" [class.active]="tab==='emp'" (click)="tab='emp'">
+        <button class="tab-pill" role="tab" [attr.aria-selected]="tab==='emp'" [class.active]="tab==='emp'" (click)="tab='emp'">
           <mat-icon class="icon-sm">people</mat-icon>
           Funcionários
           <span class="count-chip">{{ filteredEmployees.length }}/{{ employees.length }}</span>
@@ -26,25 +26,25 @@
     @if (tab === 'dept') {
       <div style="padding:20px 24px">
         @if (loadingDepts) {
-          <div style="text-align:center;padding:40px;color:var(--t3)">Carregando...</div>
+          <div class="empty-state">Carregando...</div>
         } @else if (departments.length === 0) {
-          <div style="text-align:center;padding:40px;color:var(--t3)">Nenhum departamento encontrado.</div>
+          <div class="empty-state">Nenhum departamento encontrado.</div>
         } @else {
           <div style="display:flex;flex-direction:column;gap:8px">
             @for (dept of departments; track dept.id) {
               <div class="mgmt-row">
                 <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-                  <div class="avatar" style="width:38px;height:38px;font-size:13px;flex-shrink:0">
+                  <div class="avatar">
                     {{ initials(dept.name) }}
                   </div>
                   <div style="min-width:0">
-                    <div style="font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px">
+                    <div style="font-weight:600;font-size:14px;color:var(--heading);display:flex;align-items:center;gap:6px">
                       {{ dept.name }}
                       @if (dept.admin) {
-                        <span class="badge badge-admin" style="font-size:10px">Admin</span>
+                        <span class="badge badge-admin">Admin</span>
                       }
                     </div>
-                    <div style="font-size:12px;color:var(--t3);margin-top:2px">
+                    <div class="cell-sub" style="margin-top:2px">
                       {{ dept.employeeCount }} funcionário{{ dept.employeeCount !== 1 ? 's' : '' }}
                     </div>
                   </div>
@@ -52,8 +52,8 @@
 
                 <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                   @if (confirmDeleteDept === dept.id) {
-                    <span style="font-size:12px;color:var(--t2)">Confirmar exclusão?</span>
-                    <button class="btn btn-sm" style="background:var(--red);color:#fff;border-color:var(--red)"
+                    <span style="font-size:12.5px;font-weight:600;color:var(--red-text)">Confirmar exclusão?</span>
+                    <button class="btn btn-sm btn-danger"
                             [disabled]="busyDept.has(dept.id)"
                             (click)="deleteDept(dept.id)">
                       Sim
@@ -63,24 +63,22 @@
                     @if (dept.name.toUpperCase() !== 'TI') {
                       <button class="btn btn-sm"
                               [class.btn-secondary]="!dept.admin"
-                              [style.background]="dept.admin ? 'var(--primary-dim)' : ''"
-                              [style.color]="dept.admin ? 'var(--primary)' : ''"
-                              [style.borderColor]="dept.admin ? 'var(--primary)' : ''"
+                              [class.btn-outline]="dept.admin"
+                              [class.active]="dept.admin"
                               [disabled]="busyDept.has(dept.id)"
                               (click)="toggleAdmin(dept)"
                               [title]="dept.admin ? 'Remover Admin' : 'Tornar Admin'">
-                        <mat-icon class="icon-sm">{{ dept.admin ? 'shield' : 'shield_outlined' }}</mat-icon>
+                        <mat-icon class="icon-sm">{{ dept.admin ? 'verified_user' : 'shield' }}</mat-icon>
                         {{ dept.admin ? 'Admin' : 'Dar Admin' }}
                       </button>
-                      <button class="btn btn-sm btn-secondary"
-                              style="color:var(--red)"
+                      <button class="btn btn-sm btn-icon btn-danger-soft"
                               [disabled]="busyDept.has(dept.id) || dept.employeeCount > 0"
                               [title]="dept.employeeCount > 0 ? 'Remova os funcionários primeiro' : 'Excluir departamento'"
                               (click)="confirmDeleteDept=dept.id">
                         <mat-icon class="icon-sm">delete</mat-icon>
                       </button>
                     } @else {
-                      <span style="font-size:11px;color:var(--t3);padding:0 4px">Protegido</span>
+                      <span class="badge badge-muted"><mat-icon class="icon-xs" style="margin-right:4px">lock</mat-icon>Protegido</span>
                     }
                   }
                 </div>
@@ -97,31 +95,30 @@
 
         <!-- Filtros -->
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-          <div style="position:relative;flex:1;min-width:200px">
-            <mat-icon style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:18px;width:18px;height:18px">search</mat-icon>
+          <div class="search-field">
+            <mat-icon>search</mat-icon>
             <input class="form-control"
-                   style="padding-left:36px"
                    placeholder="Pesquisar por nome, departamento ou matrícula..."
                    [(ngModel)]="empSearch" />
           </div>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t2);white-space:nowrap;user-select:none">
-            <input type="checkbox" [(ngModel)]="hideInactive" style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary)" />
+            <input type="checkbox" [(ngModel)]="hideInactive" style="width:16px;height:16px;cursor:pointer" />
             Ocultar inativos
           </label>
         </div>
 
         @if (loadingEmps) {
-          <div style="text-align:center;padding:40px;color:var(--t3)">Carregando...</div>
+          <div class="empty-state">Carregando...</div>
         } @else if (employees.length === 0) {
-          <div style="text-align:center;padding:40px;color:var(--t3)">Nenhum funcionário encontrado.</div>
+          <div class="empty-state">Nenhum funcionário encontrado.</div>
         } @else if (filteredEmployees.length === 0) {
-          <div style="text-align:center;padding:40px;color:var(--t3)">Nenhum resultado para a pesquisa.</div>
+          <div class="empty-state">Nenhum resultado para a pesquisa.</div>
         } @else {
           <div style="display:flex;flex-direction:column;gap:8px">
             @for (emp of filteredEmployees; track emp.id) {
               <div class="mgmt-row" [class.mgmt-row-inactive]="!emp.active">
                 <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-                  <div class="avatar" style="width:38px;height:38px;font-size:13px;flex-shrink:0"
+                  <div class="avatar"
                        [style.opacity]="emp.active ? '1' : '0.4'">
                     {{ initials(emp.name) }}
                   </div>
@@ -130,10 +127,10 @@
                          [style.color]="emp.active ? '' : 'var(--t3)'">
                       {{ emp.name }}
                       @if (!emp.active) {
-                        <span style="font-size:10px;background:var(--elevated);color:var(--t3);padding:2px 6px;border-radius:4px;border:1px solid var(--border)">Inativo</span>
+                        <span class="badge badge-muted">Inativo</span>
                       }
                     </div>
-                    <div style="font-size:12px;color:var(--t3);margin-top:2px">
+                    <div class="cell-sub" style="margin-top:2px">
                       {{ emp.department }} · Matrícula {{ emp.registration }}
                     </div>
                   </div>
@@ -141,8 +138,8 @@
 
                 <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                   @if (confirmDeleteEmp === emp.id) {
-                    <span style="font-size:12px;color:var(--t2)">Confirmar exclusão?</span>
-                    <button class="btn btn-sm" style="background:var(--red);color:#fff;border-color:var(--red)"
+                    <span style="font-size:12.5px;font-weight:600;color:var(--red-text)">Confirmar exclusão?</span>
+                    <button class="btn btn-sm btn-danger"
                             [disabled]="busyEmp.has(emp.id)"
                             (click)="deleteEmp(emp.id)">
                       Sim
@@ -151,17 +148,14 @@
                   } @else {
                     <button class="btn btn-sm"
                             [class.btn-secondary]="emp.active"
-                            [style.background]="!emp.active ? 'var(--primary-dim)' : ''"
-                            [style.color]="!emp.active ? 'var(--primary)' : ''"
-                            [style.borderColor]="!emp.active ? 'var(--primary)' : ''"
+                            [class.btn-outline]="!emp.active"
                             [disabled]="busyEmp.has(emp.id)"
                             (click)="toggleActive(emp)"
                             [title]="emp.active ? 'Desativar' : 'Ativar'">
                       <mat-icon class="icon-sm">{{ emp.active ? 'person_off' : 'person' }}</mat-icon>
                       {{ emp.active ? 'Ativo' : 'Ativar' }}
                     </button>
-                    <button class="btn btn-sm btn-secondary"
-                            style="color:var(--red)"
+                    <button class="btn btn-sm btn-icon btn-danger-soft"
                             [disabled]="busyEmp.has(emp.id)"
                             title="Excluir funcionário"
                             (click)="confirmDeleteEmp=emp.id">
@@ -180,32 +174,32 @@
 </div>
 
 <style>
+  .tabs { display: flex; gap: 4px; }
   .tab-pill {
-    display: flex; align-items: center; gap: 6px;
-    padding: 8px 16px; border-radius: 8px 8px 0 0;
-    border: 1px solid transparent; border-bottom: none;
-    background: none; cursor: pointer;
-    color: var(--t3); font-size: 13px; font-weight: 500;
-    transition: all 0.15s;
+    position: relative; display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border: none; background: none; cursor: pointer;
+    color: var(--t2); font-size: 13.5px; font-weight: 600;
+    transition: color 160ms ease;
   }
-  .tab-pill:hover { color: var(--t1); }
-  .tab-pill.active {
-    background: var(--elevated); color: var(--primary);
-    border-color: var(--border);
+  .tab-pill:hover { color: var(--heading); }
+  .tab-pill.active { color: var(--heading); }
+  .tab-pill.active::after {
+    content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px;
+    border-radius: 3px 3px 0 0; background: var(--fz-vermelho);
   }
   .count-chip {
     background: var(--elevated); border: 1px solid var(--border);
-    color: var(--t3); font-size: 11px; padding: 1px 6px;
-    border-radius: 10px; font-weight: 600;
+    color: var(--t2); font-size: 11px; padding: 0 7px;
+    border-radius: 999px; font-weight: 700;
   }
-  .tab-pill.active .count-chip { background: var(--primary-dim); color: var(--primary); border-color: var(--primary); }
+  .tab-pill.active .count-chip { background: var(--primary-dim); color: var(--primary); border-color: var(--primary-bd); }
 
   .mgmt-row {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
     padding: 12px 16px; border-radius: var(--rs);
-    border: 1px solid var(--border); background: var(--elevated);
-    gap: 12px; transition: border-color 0.15s;
+    border: 1px solid var(--border); background: var(--card);
+    gap: 12px; transition: border-color 160ms ease, background 160ms ease;
   }
-  .mgmt-row:hover { border-color: var(--primary); }
+  .mgmt-row:hover { border-color: var(--primary-bd); background: var(--elevated); }
   .mgmt-row-inactive { opacity: 0.75; }
 </style>

@@ -8,12 +8,12 @@ import { DashboardData } from '../../core/models/overtime-request.model';
 import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
 
 const RES_CFG: Record<string, { label: string; icon: string; color: string }> = {
-  lanche: { label: 'Lanche', icon: 'lunch_dining',    color: 'var(--yellow)'  },
-  janta:  { label: 'Janta',  icon: 'restaurant',      color: 'var(--green)'   },
-  rota:   { label: 'Rota',   icon: 'directions_bus',  color: 'var(--blue)'    },
-  uber:   { label: 'Uber',   icon: 'local_taxi',      color: 'var(--purple)'  },
-  cafe:   { label: 'Café',   icon: 'local_cafe',      color: 'var(--yellow)'  },
-  almoco: { label: 'Almoço', icon: 'restaurant_menu', color: 'var(--green)'   },
+  lanche: { label: 'Lanche', icon: 'lunch_dining',    color: 'var(--chart-1)'  },
+  janta:  { label: 'Janta',  icon: 'restaurant',      color: 'var(--chart-1)'   },
+  rota:   { label: 'Rota',   icon: 'directions_bus',  color: 'var(--chart-1)'    },
+  uber:   { label: 'Uber',   icon: 'local_taxi',      color: 'var(--chart-1)'  },
+  cafe:   { label: 'Café',   icon: 'local_cafe',      color: 'var(--chart-1)'  },
+  almoco: { label: 'Almoço', icon: 'restaurant_menu', color: 'var(--chart-1)'   },
 };
 
 const PERM_LABELS: Record<string, string> = {
@@ -121,28 +121,6 @@ export class DashboardComponent implements OnInit {
   }
 
   permLabel(p: string): string { return this.permLabels[p] ?? p; }
-
-  private static readonly DEPT_PALETTE = [
-    { bg: 'rgba(220,38,38,.13)',   color: '#b91c1c' },  // 0 — Vermelho
-    { bg: 'rgba(37,99,235,.13)',   color: '#1e40af' },  // 1 — Azul       ← TI
-    { bg: 'rgba(5,150,105,.13)',   color: '#047857' },  // 2 — Esmeralda
-    { bg: 'rgba(234,88,12,.13)',   color: '#c2410c' },  // 3 — Laranja
-    { bg: 'rgba(124,58,237,.13)',  color: '#6d28d9' },  // 4 — Violeta
-    { bg: 'rgba(8,145,178,.13)',   color: '#0e7490' },  // 5 — Ciano
-    { bg: 'rgba(202,138,4,.13)',   color: '#a16207' },  // 6 — Âmbar
-    { bg: 'rgba(219,39,119,.13)',  color: '#9d174d' },  // 7 — Rosa
-    { bg: 'rgba(101,163,13,.13)',  color: '#4d7c0f' },  // 8 — Lima
-    { bg: 'rgba(67,56,202,.13)',   color: '#3730a3' },  // 9 — Índigo
-    { bg: 'rgba(15,118,110,.13)',  color: '#0f766e' },  // 10 — Teal
-    { bg: 'rgba(244,63,94,.13)',   color: '#be123c' },  // 11 — Rosa-forte
-  ];
-
-  deptStyle(name: string): Record<string, string> {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-    const p = DashboardComponent.DEPT_PALETTE[hash % DashboardComponent.DEPT_PALETTE.length];
-    return { background: p.bg, color: p.color };
-  }
 
   gerarRelatorio(): void {
     if (!this.filterFrom || !this.filterTo) {

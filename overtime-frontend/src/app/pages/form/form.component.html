@@ -8,7 +8,7 @@
   }
 
   <div class="card">
-    <div class="card-title">Registrar Horas Extras</div>
+    <div class="card-title"><mat-icon>edit_calendar</mat-icon> Registrar Horas Extras</div>
 
     <div class="form-grid form-grid-2">
       <div class="form-group">
@@ -22,14 +22,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">Tipo do Dia</label>
-        <div class="form-control" style="background:var(--bg);cursor:default;display:flex;align-items:center;gap:8px">
+        <div class="form-control readonly">
           @if (dayType) {
             <span class="tag" [class.tag-blue]="dayType==='weekday'" [class.tag-purple]="dayType==='weekend'">
               <mat-icon class="icon-sm">{{ dayType === 'weekday' ? 'work' : 'beach_access' }}</mat-icon>
               {{ dayTypeLabel(dayType) }}
             </span>
           } @else {
-            <span style="color:var(--t3)">Auto — selecione uma data</span>
+            <span style="color:var(--t3)">Automático</span>
           }
         </div>
       </div>
@@ -39,27 +39,27 @@
     @if (dayType) {
       <div class="form-group" style="margin-top:20px">
         <label class="form-label">Permanência Até *</label>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+        <div class="resource-grid" role="radiogroup" style="margin-top:2px">
           @if (dayType === 'weekday') {
-            <label class="resource-item" [class.ri-lanche]="permanencia==='19:30'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+            <label class="resource-item option-lg" [class.ri-lanche]="permanencia==='19:30'">
               <input type="radio" name="perm" value="19:30" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
               <mat-icon class="icon-sm">lunch_dining</mat-icon> Até 19:30 &nbsp;(Lanche)
             </label>
-            <label class="resource-item" [class.ri-janta]="permanencia==='21:00'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+            <label class="resource-item option-lg" [class.ri-janta]="permanencia==='21:00'">
               <input type="radio" name="perm" value="21:00" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
               <mat-icon class="icon-sm">restaurant</mat-icon> Até 21:00 &nbsp;(Janta + Rota + Uber)
             </label>
           } @else {
-            <label class="resource-item" [class.ri-cafe]="permanencia==='until12'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+            <label class="resource-item option-lg" [class.ri-cafe]="permanencia==='until12'">
               <input type="radio" name="perm" value="until12" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
               <mat-icon class="icon-sm">local_cafe</mat-icon> Até 12h &nbsp;(Café)
             </label>
-            <label class="resource-item" [class.ri-almoco]="permanencia==='after12'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+            <label class="resource-item option-lg" [class.ri-almoco]="permanencia==='after12'">
               <input type="radio" name="perm" value="after12" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
               <mat-icon class="icon-sm">restaurant_menu</mat-icon> Após 12h &nbsp;(Café + Almoço)
             </label>
           }
-          <label class="resource-item" [class.ri-almoco]="permanencia==='especial'" style="cursor:pointer;font-size:13px;padding:10px 16px">
+          <label class="resource-item option-lg" [class.ri-almoco]="permanencia==='especial'">
             <input type="radio" name="perm" value="especial" [(ngModel)]="permanencia" [disabled]="blocked" (change)="onPermChange()" style="display:none" />
             <mat-icon class="icon-sm">stars</mat-icon> Jornada Especial &nbsp;(Almoço + Rota + Uber)
           </label>
@@ -70,20 +70,20 @@
     <!-- Multi-select de colaboradores -->
     @if (dayType && permanencia) {
       <div class="form-group" style="margin-top:20px">
-        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+        <!-- div (não label): um label repassa o clique da linha inteira para o botão -->
+        <div class="form-label label-row">
           <span>Selecionar Colaboradores *</span>
           @if (!blocked) {
-            <button type="button"
-                    style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;color:var(--primary);background:var(--primary-dim);border:1px solid var(--primary);border-radius:var(--rs);padding:12px 22px;cursor:pointer"
+            <button type="button" class="btn btn-outline"
                     (click)="openOutsourcedModal()">
-              <mat-icon style="font-size:22px;width:22px;height:22px">person_add</mat-icon>
+              <mat-icon>person_add</mat-icon>
               Novo terceirizado
             </button>
           }
-        </label>
+        </div>
         <div class="multi-select">
           <div class="ms-search">
-            <mat-icon class="icon-sm" style="color:var(--t3)">search</mat-icon>
+            <mat-icon class="icon-sm">search</mat-icon>
             <input type="text" placeholder="Buscar por nome ou departamento..."
                    [(ngModel)]="msQuery" [disabled]="blocked" />
           </div>
@@ -160,30 +160,29 @@
                   }
                   <div class="form-grid" style="gap:14px">
                     <div class="form-group">
-                      <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+                      <div class="form-label label-row">
                         <span>Motivo *</span>
                         @if (selCollabs.length > 1 && collabData[id]?.motivo?.trim()) {
-                          <button type="button"
-                                  style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-dim);border:1px solid var(--primary);border-radius:var(--rxs);padding:3px 8px;cursor:pointer"
+                          <button type="button" class="btn btn-outline btn-xs"
                                   (click)="replicateMotivo(id)">
-                            <mat-icon style="font-size:13px;width:13px;height:13px">content_copy</mat-icon>
+                            <mat-icon class="icon-xs">content_copy</mat-icon>
                             Replicar para todos
                           </button>
                         }
-                      </label>
+                      </div>
                       <textarea class="form-control" placeholder="Descreva o motivo das horas extras..."
                                 [(ngModel)]="collabData[id].motivo" [disabled]="blocked"></textarea>
                     </div>
                     @if (getEmployee(id)!.outsourced) {
-                      <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--card);border-radius:var(--rs);border:1px solid var(--border);font-size:12px;color:var(--t3)">
-                        <mat-icon class="icon-sm" style="color:var(--t3)">info</mat-icon>
+                      <div class="note">
+                        <mat-icon class="icon-sm">info</mat-icon>
                         Terceirizados não têm acesso a Rota e Uber.
                       </div>
                     } @else {
-                      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-radius:var(--rs);border:1px solid var(--border)">
+                      <div class="toggle-row">
                         <div>
-                          <div style="font-size:13px;font-weight:500">Veículo Próprio</div>
-                          <div style="font-size:12px;color:var(--t3)">Remove Rota e Uber automaticamente</div>
+                          <div class="toggle-row-title">Veículo Próprio</div>
+                          <div class="toggle-row-sub">Remove Rota e Uber automaticamente</div>
                         </div>
                         <div class="toggle-wrap" (click)="!blocked && toggleVeiculo(id)">
                           <div class="toggle" [class.on]="collabData[id].veiculo"></div>
@@ -211,7 +210,7 @@
           </div>
 
           @if (!blocked) {
-            <div style="margin-top:28px;display:flex;justify-content:flex-end;gap:12px">
+            <div class="actions-row" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
               <button class="btn btn-secondary" (click)="clearForm()">Limpar</button>
               <button class="btn btn-primary" (click)="submit()">
                 <mat-icon class="icon-sm">check_circle</mat-icon> Registrar Solicitação
@@ -226,101 +225,97 @@
   <!-- ── Modal Novo Terceirizado ──────────────────────────────────────────── -->
   @if (showOutsourcedModal) {
     <div class="modal-overlay" (click)="closeOutsourcedModal()">
-      <div class="modal-box" style="max-width:760px;width:95vw" (click)="$event.stopPropagation()">
-        <div class="modal-header" style="font-size:19px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <mat-icon style="color:var(--primary);font-size:26px;width:26px;height:26px">person_add</mat-icon>
+      <div class="modal-box modal-lg" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-heading">
+            <mat-icon>person_add</mat-icon>
             <span>Novo Terceirizado</span>
           </div>
-          <button class="modal-close" style="width:34px;height:34px" (click)="closeOutsourcedModal()"><mat-icon class="icon-sm">close</mat-icon></button>
+          <button class="modal-close" aria-label="Fechar" (click)="closeOutsourcedModal()"><mat-icon class="icon-sm">close</mat-icon></button>
         </div>
-        <p style="font-size:15px;color:var(--t2);margin-bottom:16px">
+        <p class="modal-text" style="margin-bottom:16px">
           Cadastre uma ou mais pessoas terceirizadas da mesma empresa para incluí-las nesta e em futuras solicitações. Terceirizados não têm acesso a Rota e Uber.
         </p>
-        <div style="display:flex;flex-direction:column;gap:14px;font-size:16px">
+        <div style="display:flex;flex-direction:column;gap:16px">
           <div class="form-group">
-            <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;font-size:15px">
+            <div class="form-label label-row">
               <span>Empresa *</span>
               @if (outsourcedCompanies.length > 0) {
                 @if (useNewCompany) {
-                  <button type="button"
-                          style="font-size:14px;color:var(--primary);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline"
+                  <button type="button" class="btn btn-link"
                           (click)="toggleNewCompany(false)">
                     Selecionar empresa já cadastrada
                   </button>
                 } @else {
-                  <button type="button"
-                          style="font-size:14px;color:var(--primary);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline"
+                  <button type="button" class="btn btn-link"
                           (click)="toggleNewCompany(true)">
                     + Nova empresa
                   </button>
                 }
               }
-            </label>
+            </div>
             @if (!useNewCompany && outsourcedCompanies.length > 0) {
-              <select class="form-control" style="font-size:16px;padding:12px 16px" [ngModel]="newOutsourcedCompany" (ngModelChange)="newOutsourcedCompany = $event; outsourcedSearchQuery = ''">
+              <select class="form-control" [ngModel]="newOutsourcedCompany" (ngModelChange)="newOutsourcedCompany = $event; outsourcedSearchQuery = ''">
                 <option value="" disabled>Selecione a empresa</option>
                 @for (c of outsourcedCompanies; track c) {
                   <option [value]="c">{{ c }}</option>
                 }
               </select>
             } @else {
-              <input class="form-control" style="font-size:16px;padding:12px 16px" type="text" placeholder="Empresa prestadora de serviço"
+              <input class="form-control" type="text" placeholder="Empresa prestadora de serviço"
                      [(ngModel)]="newOutsourcedCompany" />
             }
           </div>
 
           @if (!useNewCompany && newOutsourcedCompany) {
             <div class="form-group">
-              <label class="form-label" style="font-size:15px">Colaboradores já cadastrados nesta empresa</label>
+              <label class="form-label">Colaboradores já cadastrados nesta empresa</label>
               <div class="multi-select" style="margin-bottom:8px">
                 <div class="ms-search" style="border-bottom:none">
-                  <mat-icon class="icon-sm" style="color:var(--t3)">search</mat-icon>
-                  <input type="text" style="font-size:16px" placeholder="Buscar por nome..." [(ngModel)]="outsourcedSearchQuery" />
+                  <mat-icon class="icon-sm">search</mat-icon>
+                  <input type="text" placeholder="Buscar por nome..." [(ngModel)]="outsourcedSearchQuery" />
                 </div>
               </div>
               @if (existingCompanyCollaborators(newOutsourcedCompany).length > 0) {
-                <div style="display:flex;flex-direction:column;gap:2px;max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs);padding:6px">
+                <div class="check-list">
                   @for (emp of existingCompanyCollaborators(newOutsourcedCompany); track emp.id) {
-                    <label style="display:flex;align-items:center;gap:8px;font-size:15px;cursor:pointer;padding:8px 10px;border-radius:var(--rxs)"
-                           [style.background]="selCollabs.includes(emp.id) ? 'var(--primary-dim)' : 'transparent'">
+                    <label class="check-item" [class.selected]="selCollabs.includes(emp.id)">
                       <input type="checkbox" [checked]="selCollabs.includes(emp.id)" (change)="toggleCollab(emp.id)" />
                       {{ emp.name }}
                     </label>
                   }
                 </div>
               } @else {
-                <div style="font-size:14px;color:var(--t3)">Nenhum colaborador encontrado nesta empresa.</div>
+                <div class="cell-muted">Nenhum colaborador encontrado nesta empresa.</div>
               }
             </div>
           }
 
           <div class="form-group">
-            <label class="form-label" style="font-size:15px">Novos colaboradores</label>
+            <label class="form-label">Novos colaboradores</label>
             <div style="display:flex;flex-direction:column;gap:8px">
               @for (name of newOutsourcedNames; track $index) {
                 <div style="display:flex;gap:8px;align-items:center">
-                  <input class="form-control" style="font-size:16px;padding:12px 16px" type="text" placeholder="Nome do terceirizado"
+                  <input class="form-control" type="text" placeholder="Nome do terceirizado"
                          [ngModel]="name" (ngModelChange)="newOutsourcedNames[$index] = $event" />
                   @if (newOutsourcedNames.length > 1) {
-                    <button type="button" class="modal-close" style="flex-shrink:0" (click)="removeOutsourcedName($index)">
+                    <button type="button" class="modal-close" aria-label="Remover" (click)="removeOutsourcedName($index)">
                       <mat-icon class="icon-sm">close</mat-icon>
                     </button>
                   }
                 </div>
               }
             </div>
-            <button type="button"
-                    style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--primary);background:var(--primary-dim);border:1px solid var(--primary);border-radius:var(--rxs);padding:8px 14px;cursor:pointer;margin-top:10px;width:fit-content"
+            <button type="button" class="btn btn-outline btn-sm" style="margin-top:10px;align-self:flex-start"
                     (click)="addOutsourcedName()">
-              <mat-icon style="font-size:16px;width:16px;height:16px">add</mat-icon>
+              <mat-icon class="icon-sm">add</mat-icon>
               Adicionar colaborador
             </button>
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
-          <button class="btn btn-secondary" style="font-size:16px;padding:12px 22px" (click)="closeOutsourcedModal()">Fechar</button>
-          <button class="btn btn-primary" style="font-size:16px;padding:12px 22px" (click)="submitOutsourced()">
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeOutsourcedModal()">Fechar</button>
+          <button class="btn btn-primary" (click)="submitOutsourced()">
             <mat-icon class="icon-sm">check_circle</mat-icon>
             {{ hasPendingOutsourcedNames ? 'Cadastrar' : 'Concluir' }}
           </button>

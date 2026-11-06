@@ -1,93 +1,120 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import { ToastComponent } from '../../shared/toast/toast.component';
-import { ThemeService } from '../../core/services/theme.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, ToastComponent, MatIconModule],
+  imports: [ReactiveFormsModule, ToastComponent],
   styles: [`
-    .login-hint { text-align:center; font-size:12px; color:var(--t3); }
-    .login-hint strong { color:var(--t2); }
-    .logo-icon-wrap { width:56px; height:56px; background:var(--primary-dim); border-radius:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
-    .theme-corner { position:fixed; top:16px; right:16px; }
-    .theme-btn {
-      width:56px; height:28px; border-radius:100px;
-      border:none; cursor:pointer; padding:3px;
-      display:flex; align-items:center;
-      background:#1e1e2e;
-      transition:background 0.3s;
-      position:relative; flex-shrink:0;
+    /*
+     * Login padrão Fermazon (igual à Gestão de Bloqueios e à Fatura de Adiantamento):
+     * página inteira em marinho com linhas diagonais discretas, filete vermelho na base
+     * e cartão branco centralizado. Usa os tokens --fz-* direto para ficar igual
+     * mesmo quando o tema escuro estiver ligado.
+     */
+    :host { display: block; }
+    .login {
+      position: relative; min-height: 100vh;
+      display: grid; grid-template-columns: minmax(0, 1fr); place-items: center;
+      padding: 24px 16px 32px;
+      background: var(--fz-marinho); overflow: hidden;
     }
-    .theme-btn.light { background:#e2e8f0; }
-    .theme-btn-thumb {
-      width:22px; height:22px; border-radius:50%;
-      background:#fff;
-      display:flex; align-items:center; justify-content:center;
-      transition:transform 0.3s cubic-bezier(.4,0,.2,1),background 0.3s;
-      flex-shrink:0;
-      box-shadow:0 1px 4px rgba(0,0,0,.25);
+    .login::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 22px);
     }
-    .theme-btn.light .theme-btn-thumb { transform:translateX(28px); background:#1e1e2e; }
-    .theme-btn-icon { position:absolute; display:flex; align-items:center; justify-content:center; }
-    .theme-btn-icon.moon { left:7px; }
-    .theme-btn-icon.sun  { right:6px; }
+    .login::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 4px;
+      background: var(--fz-vermelho);
+    }
+    .login-conteudo { position: relative; width: 450px; max-width: 100%; }
+    .login-cartao {
+      background: #fff; color: var(--fz-texto); color-scheme: light;
+      border-radius: 12px; box-shadow: 0 12px 40px rgba(13,35,64,.18); overflow: hidden;
+    }
+    .login-marca {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 32px 32px 24px; border-bottom: 1px solid var(--fz-borda);
+    }
+    .login-logo { display: block; height: 34px; width: auto; margin-bottom: 20px; }
+    .login-titulo {
+      font: 700 26px/1.1 var(--fonte-titulo); color: var(--fz-marinho);
+      text-transform: uppercase; letter-spacing: .02em;
+    }
+    .login-corpo { display: flex; flex-direction: column; gap: 16px; padding: 24px 32px 32px; }
+    .campo { display: flex; flex-direction: column; gap: 6px; }
+    .campo-rotulo { font-size: 13px; font-weight: 600; color: var(--fz-texto); }
+    .input {
+      height: 46px; width: 100%; padding: 0 14px;
+      background: #fff; color: var(--fz-texto);
+      border: 1px solid #cbd5e1; border-radius: 8px; outline: none;
+      font-size: 14px; font-family: inherit;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+    .input:hover:not(:disabled) { border-color: #94a3b8; }
+    .input:focus { border-color: var(--fz-marinho-2); box-shadow: 0 0 0 3px rgba(25,59,99,.28); }
+    .input::placeholder { color: #94a3b8; }
+    select.input {
+      cursor: pointer; appearance: none; padding-right: 40px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2366758a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+    }
+    .btn-entrar {
+      height: 48px; width: 100%; margin-top: 8px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--fz-vermelho); color: #fff; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background 160ms ease, box-shadow 160ms ease;
+    }
+    .btn-entrar:hover:not(:disabled) { background: var(--fz-vermelho-hover); }
+    .btn-entrar:focus-visible { box-shadow: 0 0 0 3px rgba(201,37,42,.35); }
+    .btn-entrar:disabled { opacity: .7; cursor: not-allowed; }
+    .login-rodape { margin-top: 20px; text-align: center; font-size: 12px; color: #8fa1b8; }
+    @media (max-width: 480px) {
+      .login-marca { padding: 24px 20px 20px; }
+      .login-corpo { padding: 20px; }
+      .login-titulo { font-size: 22px; }
+    }
   `],
   template: `
-    <div class="theme-corner">
-      <button class="theme-btn" [class.light]="!theme.isDark" (click)="theme.toggle()" [title]="theme.isDark ? 'Modo claro' : 'Modo escuro'">
-        <span class="theme-btn-icon moon">
-          <mat-icon class="icon-xs" style="color:#a5b4fc">dark_mode</mat-icon>
-        </span>
-        <span class="theme-btn-icon sun">
-          <mat-icon class="icon-xs" style="color:#f59e0b">light_mode</mat-icon>
-        </span>
-        <span class="theme-btn-thumb"></span>
-      </button>
-    </div>
-    <div class="login-page">
-      <div class="login-card">
-        <div class="logo-icon-wrap">
-          <mat-icon class="icon-xl" style="color:var(--primary)">schedule</mat-icon>
-        </div>
-        <div class="login-title">Solicitação de Recursos</div>
-        <div class="login-sub">Sistema de Solicitação de recursos para Horas Extras</div>
+    <section class="login">
+      <main class="login-conteudo">
+        <form class="login-cartao" [formGroup]="form" (ngSubmit)="submit()" aria-labelledby="login-titulo">
+          <header class="login-marca">
+            <img class="login-logo" src="assets/logo-fermazon.svg" alt="Fermazon" />
+            <h1 class="login-titulo" id="login-titulo">Solicitação de Recursos</h1>
+          </header>
 
-        <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid" style="gap:16px">
-          <div class="form-group">
-            <label class="form-label">Departamento</label>
-            <select class="form-control" formControlName="department">
-              <option value="">Selecione...</option>
-              @for (d of departments; track d) {
-                <option [value]="d">{{ d }}</option>
-              }
-            </select>
+          <div class="login-corpo">
+            <div class="campo">
+              <label class="campo-rotulo" for="login-departamento">Departamento</label>
+              <select id="login-departamento" class="input" formControlName="department">
+                <option value="">Selecione...</option>
+                @for (d of departments; track d) {
+                  <option [value]="d">{{ d }}</option>
+                }
+              </select>
+            </div>
+            <div class="campo">
+              <label class="campo-rotulo" for="login-senha">Senha</label>
+              <input id="login-senha" type="password" class="input" formControlName="password"
+                     autocomplete="current-password" placeholder="Digite a senha" />
+            </div>
+            <button type="submit" class="btn-entrar" [disabled]="loading" [attr.aria-busy]="loading">
+              @if (loading) { <span class="spin"></span> Entrando... } @else { Entrar }
+            </button>
           </div>
-          <div class="form-group">
-            <label class="form-label">Senha</label>
-            <input type="password" class="form-control" formControlName="password" placeholder="Digite a senha" />
-          </div>
-          <button type="submit" class="btn btn-primary btn-full" style="margin-top:8px" [disabled]="loading">
-            {{ loading ? 'Entrando...' : 'Entrar' }}
-          </button>
         </form>
 
-        <div class="divider"></div>
-        <div class="login-hint">
-          © 2026 Fermazon. Todos os direitos reservados.
-        </div>
-        <div style="text-align:center; margin-top:12px;">
-          <img src="assets/logo-fermazon.png" alt="Fermazon" style="height:32px; width:auto; opacity:0.85;" />
-        </div>
-      </div>
-    </div>
+        <p class="login-rodape">© {{ ano }} Fermazon Ferro e Aço do Amazonas. Todos os direitos reservados.</p>
+      </main>
+    </section>
     <app-toast />
   `
 })
@@ -97,7 +124,7 @@ export class LoginComponent {
   private router = inject(Router);
   private toast  = inject(ToastService);
   private http   = inject(HttpClient);
-  theme          = inject(ThemeService);
+  readonly ano   = new Date().getFullYear();
 
   departments: string[] = [];
   loading = false;

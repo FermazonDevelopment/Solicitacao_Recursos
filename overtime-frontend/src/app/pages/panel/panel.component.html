@@ -7,7 +7,7 @@
           <mat-icon class="icon-sm" [style.color]="kpi.color">{{ kpi.icon }}</mat-icon>
           {{ kpi.label }}
         </div>
-        <div class="kpi-value" [style.color]="kpi.color">{{ kpi.val }}</div>
+        <div class="kpi-value">{{ kpi.val }}</div>
       </div>
     }
   </div>
@@ -15,10 +15,10 @@
   <div class="card">
     <div class="section-header">
       <div class="section-title">Solicitações</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="live-dot"></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="live"><span class="live-dot"></span> Atualização automática</span>
         <button class="btn-export-report" (click)="gerarRelatorio()">
-          <mat-icon style="font-size:16px;width:16px;height:16px">download</mat-icon> Gerar Relatório
+          <mat-icon class="icon-sm">download</mat-icon> Gerar Relatório
         </button>
       </div>
     </div>
@@ -61,14 +61,14 @@
 
     <!-- Barra de seleção múltipla -->
     @if (isAdmin && selectedIds.size > 0) {
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;margin-bottom:8px;background:var(--primary-dim);border:1px solid rgba(99,102,241,.25);border-radius:var(--rs)">
-        <span style="font-size:13px;font-weight:500;color:var(--primary)">
-          <mat-icon class="icon-sm" style="vertical-align:middle">check_box</mat-icon>
+      <div class="selection-bar">
+        <span style="display:inline-flex;align-items:center;gap:6px">
+          <mat-icon class="icon-sm">check_box</mat-icon>
           {{ selectedIds.size }} selecionada(s)
         </span>
         <div style="display:flex;gap:8px">
           <button class="btn btn-sm btn-secondary" (click)="selectedIds.clear()">Cancelar seleção</button>
-          <button class="btn btn-sm" style="background:var(--green);color:#fff" (click)="confirmingBulk = true">
+          <button class="btn btn-sm btn-success" (click)="confirmingBulk = true">
             <mat-icon class="icon-sm">check_circle</mat-icon> Confirmar selecionadas
           </button>
         </div>
@@ -102,7 +102,7 @@
           </thead>
           <tbody>
             @for (r of pagedRequests; track r.id) {
-              <tr [style.background]="selectedIds.has(r.id) ? 'var(--primary-dim)' : ''">
+              <tr [class.row-selected]="selectedIds.has(r.id)">
                 @if (isAdmin) {
                   <td>
                     @if (r.status === 'PENDENTE') {
@@ -112,26 +112,26 @@
                 }
                 <td>
                   <div style="display:flex;align-items:center;gap:8px">
-                    <div class="avatar" style="width:28px;height:28px;font-size:11px">{{ initials(r.name) }}</div>
+                    <div class="avatar avatar-sm">{{ initials(r.name) }}</div>
                     <div>
-                      <div style="font-weight:500;display:flex;align-items:center;gap:6px">
+                      <div style="font-weight:600;color:var(--heading);display:flex;align-items:center;gap:6px;white-space:nowrap">
                         {{ r.name }}
                         @if (r.outsourced) { <span class="badge badge-outsourced">Terceirizado</span> }
                       </div>
-                      <div style="font-size:11px;color:var(--t3)">
+                      <div class="cell-sub">
                         @if (r.outsourced) { {{ r.companyName }} } @else { Reg. {{ r.registration }} }
                       </div>
                     </div>
                   </div>
                 </td>
-                <td><span class="dept-tag" [ngStyle]="deptStyle(r.department)">{{ r.department }}</span></td>
+                <td><span class="dept-tag">{{ r.department }}</span></td>
                 <td style="white-space:nowrap">{{ fmtDate(r.date) }}</td>
                 <td><span class="tag tag-gray">{{ permLabel(r.permanencia) }}</span></td>
                 <td>
                   <div style="display:flex;flex-wrap:wrap;gap:4px">
                     @for (res of r.resources; track res) {
                       @if (resTags[res]) {
-                        <span class="tag {{ resTags[res].cls }}" style="display:inline-flex;align-items:center;gap:3px">
+                        <span class="tag {{ resTags[res].cls }}">
                           <mat-icon class="icon-xs">{{ resTags[res].icon }}</mat-icon>
                           {{ resTags[res].label }}
                         </span>
@@ -141,7 +141,7 @@
                 </td>
                 <td>
                   @if (r.veiculoProprio) {
-                    <span class="tag tag-green" style="display:inline-flex;align-items:center;gap:3px">
+                    <span class="tag tag-green">
                       <mat-icon class="icon-xs">directions_car</mat-icon> Sim
                     </span>
                   } @else {
@@ -149,33 +149,33 @@
                   }
                 </td>
                 <td>
-                  <div style="font-size:12px;color:var(--t3);display:flex;align-items:flex-start;gap:4px">
+                  <div class="cell-muted" style="display:flex;align-items:flex-start;gap:4px;min-width:160px">
                     <mat-icon class="icon-xs" style="margin-top:1px">location_on</mat-icon>
                     {{ r.address }}
                   </div>
                 </td>
-                <td style="max-width:200px"><div style="font-size:12px;color:var(--t2)">{{ r.motivo || '—' }}</div></td>
-                <td style="font-size:12px;color:var(--t3);white-space:nowrap">{{ fmtDT(r.registeredAt) }}</td>
+                <td style="max-width:220px;min-width:140px"><div class="cell-muted">{{ r.motivo || '—' }}</div></td>
+                <td class="cell-muted" style="white-space:nowrap">{{ fmtDT(r.registeredAt) }}</td>
                 <td>
                   @if (r.status === 'CONFIRMADO') {
-                    <span class="tag tag-green" style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap">
+                    <span class="tag tag-green">
                       <mat-icon class="icon-xs">check_circle</mat-icon> Confirmado
                     </span>
                   } @else if (r.status === 'CANCELADO') {
-                    <span class="tag tag-red" style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap">
+                    <span class="tag tag-red">
                       <mat-icon class="icon-xs">cancel</mat-icon> Cancelado
                     </span>
                   } @else {
-                    <span class="tag tag-yellow" style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap">
+                    <span class="tag tag-yellow">
                       <mat-icon class="icon-xs">schedule</mat-icon> Pendente
                     </span>
                   }
                 </td>
                 <td style="max-width:180px">
                   @if (r.status === 'CANCELADO') {
-                    <div style="font-size:12px;color:var(--red);line-height:1.3">{{ r.cancellationReason }}</div>
+                    <div style="font-size:12px;color:var(--red-text);line-height:1.35">{{ r.cancellationReason }}</div>
                   } @else if (canEdit(r) && r.status === 'CONFIRMADO') {
-                    <button class="btn btn-sm" style="padding:5px 8px;background:var(--red-dim);color:var(--red);border:1px solid rgba(220,38,38,.2)" (click)="openCancelConfirmed(r.id)" title="Cancelar confirmação">
+                    <button class="btn btn-xs btn-danger-soft" (click)="openCancelConfirmed(r.id)" title="Cancelar confirmação">
                       <mat-icon class="icon-sm">cancel</mat-icon> Cancelar
                     </button>
                   } @else {
@@ -185,15 +185,15 @@
                 <td>
                   <div style="display:flex;gap:6px">
                     @if (isAdmin && r.status === 'PENDENTE') {
-                      <button class="btn btn-sm" style="padding:5px 8px;background:var(--green-dim);color:var(--green);border:1px solid rgba(5,150,105,.2)" (click)="doConfirm(r.id)" title="Confirmar">
+                      <button class="btn btn-sm btn-icon btn-success-soft" (click)="doConfirm(r.id)" title="Confirmar" aria-label="Confirmar">
                         <mat-icon class="icon-sm">check</mat-icon>
                       </button>
                     }
                     @if (canEdit(r) && r.status === 'PENDENTE') {
-                      <button class="btn btn-sm btn-secondary" style="padding:5px 8px" (click)="openEdit(r)" title="Editar">
+                      <button class="btn btn-sm btn-icon btn-secondary" (click)="openEdit(r)" title="Editar" aria-label="Editar">
                         <mat-icon class="icon-sm">edit</mat-icon>
                       </button>
-                      <button class="btn btn-sm" style="padding:5px 8px;background:var(--red-dim);color:var(--red);border:1px solid rgba(220,38,38,.2)" (click)="confirmCancel(r.id)" title="Cancelar">
+                      <button class="btn btn-sm btn-icon btn-danger-soft" (click)="confirmCancel(r.id)" title="Cancelar" aria-label="Cancelar">
                         <mat-icon class="icon-sm">delete</mat-icon>
                       </button>
                     }
@@ -206,22 +206,19 @@
       </div>
 
       @if (totalPages > 1) {
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:8px">
-          <div style="font-size:13px;color:var(--t3)">
+        <div class="pagination">
+          <div class="pagination-info">
             {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize < filteredRequests.length ? currentPage * pageSize : filteredRequests.length }} de {{ filteredRequests.length }} solicitações
           </div>
-          <div style="display:flex;align-items:center;gap:4px">
-            <button class="btn btn-sm btn-secondary" style="padding:5px 10px" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+          <div class="pagination-pages">
+            <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" aria-label="Página anterior">
               <mat-icon class="icon-sm">chevron_left</mat-icon>
             </button>
             @for (p of pageNumbers; track p) {
-              <button class="btn btn-sm" style="padding:5px 10px;min-width:34px"
-                [style.background]="p === currentPage ? 'var(--primary)' : 'var(--elevated)'"
-                [style.color]="p === currentPage ? '#fff' : 'var(--t2)'"
-                [style.border]="p === currentPage ? 'none' : '1px solid var(--border)'"
+              <button class="page-btn" [class.active]="p === currentPage" [attr.aria-current]="p === currentPage ? 'page' : null"
                 (click)="goToPage(p)">{{ p }}</button>
             }
-            <button class="btn btn-sm btn-secondary" style="padding:5px 10px" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+            <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages" aria-label="Próxima página">
               <mat-icon class="icon-sm">chevron_right</mat-icon>
             </button>
           </div>
@@ -229,7 +226,7 @@
       }
     } @else {
       <div class="empty">
-        <mat-icon class="icon-xl" style="color:var(--t3);margin-bottom:12px">inbox</mat-icon>
+        <mat-icon class="icon-xl">inbox</mat-icon>
         <div class="empty-text">Nenhuma solicitação encontrada</div>
       </div>
     }
@@ -239,13 +236,13 @@
 <!-- ── Modal Edição ─────────────────────────────────────────────────────── -->
 @if (editingId && editState) {
   <div class="modal-overlay" (click)="closeEdit()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-box" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div style="display:flex;align-items:center;gap:8px">
-          <mat-icon style="color:var(--primary)">edit</mat-icon>
+        <div class="modal-heading">
+          <mat-icon>edit</mat-icon>
           <span>Editar Solicitação</span>
         </div>
-        <button class="modal-close" (click)="closeEdit()"><mat-icon class="icon-sm">close</mat-icon></button>
+        <button class="modal-close" aria-label="Fechar" (click)="closeEdit()"><mat-icon class="icon-sm">close</mat-icon></button>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:16px">
@@ -254,12 +251,11 @@
           <label class="form-label">Permanência *</label>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             @for (opt of permOptionsFor(editingRequest!); track opt.value) {
-              <label class="resource-item"
+              <label class="resource-item option-lg"
                      [class.ri-lanche]="editState.permanencia === opt.value && opt.value === '19:30'"
                      [class.ri-janta]="editState.permanencia === opt.value && opt.value === '21:00'"
                      [class.ri-cafe]="editState.permanencia === opt.value && opt.value === 'until12'"
-                     [class.ri-almoco]="editState.permanencia === opt.value && (opt.value === 'after12' || opt.value === 'especial')"
-                     style="cursor:pointer;font-size:13px;padding:8px 14px">
+                     [class.ri-almoco]="editState.permanencia === opt.value && (opt.value === 'after12' || opt.value === 'especial')">
                 <input type="radio" name="editPerm" [value]="opt.value" [(ngModel)]="editState.permanencia"
                        (change)="onEditPermChange()" style="display:none" />
                 {{ opt.label }}
@@ -269,10 +265,10 @@
         </div>
 
         <!-- Veículo próprio -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--elevated);border-radius:var(--rs);border:1px solid var(--border)">
+        <div class="toggle-row">
           <div>
-            <div style="font-size:13px;font-weight:500">Veículo Próprio</div>
-            <div style="font-size:12px;color:var(--t3)">Remove Rota e Uber automaticamente</div>
+            <div class="toggle-row-title">Veículo Próprio</div>
+            <div class="toggle-row-sub">Remove Rota e Uber automaticamente</div>
           </div>
           <div class="toggle-wrap" (click)="toggleEditVeiculo()">
             <div class="toggle" [class.on]="editState.veiculoProprio"></div>
@@ -302,7 +298,7 @@
         </div>
       </div>
 
-      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeEdit()">Cancelar</button>
         <button class="btn btn-primary" (click)="saveEdit()" [disabled]="editState.loading">
           <mat-icon class="icon-sm">check_circle</mat-icon>
@@ -316,20 +312,20 @@
 <!-- ── Modal Confirmação em Massa ──────────────────────────────────────── -->
 @if (confirmingBulk) {
   <div class="modal-overlay" (click)="confirmingBulk = false">
-    <div class="modal-box" style="max-width:400px" (click)="$event.stopPropagation()">
+    <div class="modal-box modal-sm" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div style="display:flex;align-items:center;gap:8px">
-          <mat-icon style="color:var(--green)">check_circle</mat-icon>
+        <div class="modal-heading success">
+          <mat-icon>check_circle</mat-icon>
           <span>Confirmar Solicitações</span>
         </div>
-        <button class="modal-close" (click)="confirmingBulk = false"><mat-icon class="icon-sm">close</mat-icon></button>
+        <button class="modal-close" aria-label="Fechar" (click)="confirmingBulk = false"><mat-icon class="icon-sm">close</mat-icon></button>
       </div>
-      <p style="font-size:14px;color:var(--t2);margin-bottom:20px">
+      <p class="modal-text">
         Confirmar <strong>{{ selectedIds.size }}</strong> solicitação(ões) selecionada(s)?
       </p>
-      <div style="display:flex;justify-content:flex-end;gap:10px">
+      <div class="modal-footer">
         <button class="btn btn-secondary" (click)="confirmingBulk = false">Cancelar</button>
-        <button class="btn" style="background:var(--green);color:#fff" (click)="confirmSelected()">
+        <button class="btn btn-success" (click)="confirmSelected()">
           <mat-icon class="icon-sm">check_circle</mat-icon> Confirmar
         </button>
       </div>
@@ -340,24 +336,24 @@
 <!-- ── Modal Cancelar Solicitação Confirmada ───────────────────────────── -->
 @if (cancelingConfirmedId) {
   <div class="modal-overlay" (click)="closeCancelConfirmed()">
-    <div class="modal-box" style="max-width:440px" (click)="$event.stopPropagation()">
+    <div class="modal-box modal-sm" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div style="display:flex;align-items:center;gap:8px">
-          <mat-icon style="color:var(--red)">cancel</mat-icon>
+        <div class="modal-heading danger">
+          <mat-icon>cancel</mat-icon>
           <span>Cancelar Solicitação Confirmada</span>
         </div>
-        <button class="modal-close" (click)="closeCancelConfirmed()"><mat-icon class="icon-sm">close</mat-icon></button>
+        <button class="modal-close" aria-label="Fechar" (click)="closeCancelConfirmed()"><mat-icon class="icon-sm">close</mat-icon></button>
       </div>
-      <p style="font-size:14px;color:var(--t2);margin-bottom:16px">
+      <p class="modal-text" style="margin-bottom:16px">
         Informe o motivo do cancelamento. Esta ação não pode ser desfeita.
       </p>
       <div class="form-group">
         <label class="form-label">Motivo do cancelamento *</label>
         <textarea class="form-control" rows="3" placeholder="Descreva o motivo..." [(ngModel)]="cancelReason"></textarea>
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeCancelConfirmed()">Voltar</button>
-        <button class="btn" style="background:var(--red);color:#fff" (click)="doCancelConfirmed()">
+        <button class="btn btn-danger" (click)="doCancelConfirmed()">
           <mat-icon class="icon-sm">cancel</mat-icon> Confirmar Cancelamento
         </button>
       </div>
@@ -368,20 +364,20 @@
 <!-- ── Modal Confirmação Cancelamento ──────────────────────────────────── -->
 @if (cancelingId) {
   <div class="modal-overlay" (click)="closeCancel()">
-    <div class="modal-box" style="max-width:400px" (click)="$event.stopPropagation()">
+    <div class="modal-box modal-sm" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div style="display:flex;align-items:center;gap:8px">
-          <mat-icon style="color:var(--red)">warning</mat-icon>
+        <div class="modal-heading danger">
+          <mat-icon>warning</mat-icon>
           <span>Cancelar Solicitação</span>
         </div>
-        <button class="modal-close" (click)="closeCancel()"><mat-icon class="icon-sm">close</mat-icon></button>
+        <button class="modal-close" aria-label="Fechar" (click)="closeCancel()"><mat-icon class="icon-sm">close</mat-icon></button>
       </div>
-      <p style="font-size:14px;color:var(--t2);margin-bottom:20px">
+      <p class="modal-text">
         Tem certeza que deseja cancelar esta solicitação? Esta ação não pode ser desfeita.
       </p>
-      <div style="display:flex;justify-content:flex-end;gap:10px">
+      <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeCancel()">Voltar</button>
-        <button class="btn" style="background:var(--red);color:#fff" (click)="doCancel()">
+        <button class="btn btn-danger" (click)="doCancel()">
           <mat-icon class="icon-sm">delete</mat-icon> Confirmar Cancelamento
         </button>
       </div>

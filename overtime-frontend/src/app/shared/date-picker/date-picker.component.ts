@@ -24,7 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
       background: var(--card);
       border: 1px solid var(--border-lt);
       border-radius: var(--r);
-      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+      box-shadow: var(--sombra-modal);
       z-index: 9999;
       padding: 16px;
       width: 280px;
@@ -72,9 +72,9 @@ import { MatIconModule } from '@angular/material/icon';
     .dp-cell:not(.dp-empty):hover { background: var(--primary-dim); color: var(--primary); }
     .dp-cell.dp-today { border-color: var(--primary); color: var(--primary); font-weight: 700; }
     .dp-cell.dp-selected {
-      background: var(--primary) !important; color: #fff !important;
+      background: var(--fz-marinho-2) !important; color: #fff !important;
       border-color: transparent !important;
-      box-shadow: 0 2px 10px rgba(99,102,241,.5);
+      box-shadow: 0 2px 8px rgba(16,42,76,.3);
     }
     .dp-cell.dp-past {
       opacity: .35; cursor: not-allowed; pointer-events: none;

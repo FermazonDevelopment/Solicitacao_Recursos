@@ -1,104 +1,124 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, NavigationEnd } from '@angular/router';
+import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { filter } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
 import { ThemeService } from '../../core/services/theme.service';
+import { AuthService } from '../../core/services/auth.service';
+import { SidebarService } from '../../core/services/sidebar.service';
 
+/**
+ * Estilos em styles.css (seção CABEÇALHO DA APLICAÇÃO).
+ * Cabeçalho institucional Fermazon: marinho, filete vermelho embaixo,
+ * logo + nome da aplicação à esquerda; hora/prazo, tema e menu do usuário à direita.
+ */
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
-  styles: [`
-    .topbar { height: 64px; border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; background: var(--card); position: sticky; top: 0; z-index: 50; }
-    .page-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-    .topbar-right { display: flex; align-items: center; gap: 14px; }
-    .theme-btn {
-      width: 56px; height: 28px; border-radius: 100px;
-      border: none; cursor: pointer; padding: 3px;
-      display: flex; align-items: center;
-      background: #1e1e2e;
-      transition: background 0.3s;
-      position: relative; flex-shrink: 0;
-    }
-    .theme-btn.light { background: #e2e8f0; }
-    .theme-btn-thumb {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.3s cubic-bezier(.4,0,.2,1), background 0.3s;
-      flex-shrink: 0;
-      box-shadow: 0 1px 4px rgba(0,0,0,.25);
-    }
-    .theme-btn.light .theme-btn-thumb { transform: translateX(28px); background: #1e1e2e; }
-    .theme-btn-icon { position: absolute; display: flex; align-items: center; justify-content: center; }
-    .theme-btn-icon.moon { left: 7px; }
-    .theme-btn-icon.sun  { right: 6px; }
-    @media (max-width: 768px) { .topbar { padding: 0 16px; } }
-  `],
+  imports: [MatIconModule, RouterLink],
   template: `
-    <div class="topbar">
-      <div class="page-title">{{ pageTitle }}</div>
-      <div class="topbar-right">
-        <div class="time-block">
-          <div class="time-dot" [class.danger]="deadlinePassed" [class.warn]="!deadlinePassed"></div>
+    <header class="topo">
+      <div class="marca">
+        <button type="button" class="menu-mobile" (click)="sidebar.toggleMobile()" aria-label="Abrir menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <img class="marca-logo" src="assets/logo-fermazon-negativo.svg" alt="Fermazon" />
+        <span class="marca-divisor" aria-hidden="true"></span>
+        <div class="marca-textos">
+          <span class="marca-nome">Solicitação de Recursos</span>
+          <span class="marca-modulo">Horas Extras</span>
+        </div>
+      </div>
+
+      <div class="direita">
+        <div class="hora" [title]="deadlinePassed ? 'Prazo para solicitações encerrado (14:00)' : 'Solicitações abertas até 14:00'">
+          <span class="time-dot" [class.danger]="deadlinePassed" [class.warn]="!deadlinePassed"></span>
           {{ currentTime }}
-          @if (deadlinePassed) {
-            <span style="color:var(--red);font-size:11px;font-weight:600">Prazo encerrado</span>
-          }
+          @if (deadlinePassed) { <span class="prazo">Prazo encerrado</span> }
         </div>
 
-        <button class="theme-btn" [class.light]="!theme.isDark" (click)="theme.toggle()" [title]="theme.isDark ? 'Modo claro' : 'Modo escuro'">
-          <span class="theme-btn-icon moon">
-            <mat-icon class="icon-xs" style="color:#a5b4fc">dark_mode</mat-icon>
-          </span>
-          <span class="theme-btn-icon sun">
-            <mat-icon class="icon-xs" style="color:#f59e0b">light_mode</mat-icon>
-          </span>
-          <span class="theme-btn-thumb"></span>
+        <button type="button" class="icone-btn" (click)="theme.toggle()"
+                [title]="theme.isDark ? 'Modo claro' : 'Modo escuro'"
+                [attr.aria-label]="theme.isDark ? 'Ativar modo claro' : 'Ativar modo escuro'">
+          <mat-icon>{{ theme.isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
         </button>
+
+        <span class="sep" aria-hidden="true"></span>
+
+        <div class="conta" #conta>
+          <button type="button" class="conta-botao" aria-haspopup="menu"
+                  [attr.aria-expanded]="menuOpen" aria-controls="menu-conta"
+                  (click)="menuOpen = !menuOpen">
+            <span class="conta-textos">
+              <span class="conta-nome">{{ department }}</span>
+              <span class="conta-papel">{{ role }}</span>
+            </span>
+            <span class="avatar-topo" aria-hidden="true">{{ initials }}</span>
+            <mat-icon class="icon-sm conta-seta">expand_more</mat-icon>
+          </button>
+
+          @if (menuOpen) {
+            <div class="menu" id="menu-conta" role="menu">
+              <div class="menu-cabecalho">
+                <span class="avatar-topo" aria-hidden="true">{{ initials }}</span>
+                <div>
+                  <div class="menu-usuario-nome">{{ department }}</div>
+                  <div class="menu-usuario-papel">{{ role }}</div>
+                </div>
+              </div>
+              <a class="menu-item" role="menuitem" routerLink="/password-request" (click)="menuOpen = false">
+                <mat-icon class="icon-sm">lock_reset</mat-icon> Trocar senha
+              </a>
+              <button type="button" class="menu-item sair" role="menuitem" (click)="auth.logout()">
+                <mat-icon class="icon-sm">logout</mat-icon> Sair
+              </button>
+            </div>
+          }
+        </div>
       </div>
-    </div>
+    </header>
   `
 })
 export class TopbarComponent implements OnInit, OnDestroy {
-  theme = inject(ThemeService);
+  theme   = inject(ThemeService);
+  auth    = inject(AuthService);
+  sidebar = inject(SidebarService);
 
-  pageTitle = '';
+  @ViewChild('conta') contaRef?: ElementRef<HTMLElement>;
+
   currentTime = '';
   deadlinePassed = false;
+  menuOpen = false;
 
   private timer?: ReturnType<typeof setInterval>;
-  private routerSub?: Subscription;
 
-  private readonly titles: Record<string, string> = {
-    '/form':             'Nova Solicitação',
-    '/panel':            'Painel de Solicitações',
-    '/dashboard':        'Dashboard',
-    '/password-request': 'Trocar Senha',
-    '/admin-passwords':  'Gestão de Senhas',
-  };
+  get department(): string { return this.auth.getDepartment(); }
 
-  constructor(private router: Router) {}
+  get role(): string {
+    if (this.department === 'TI') return 'Super-Admin';
+    return this.auth.isAdmin() ? 'Administrador' : 'Departamento';
+  }
+
+  get initials(): string {
+    const parts = (this.department || '').trim().split(/\s+/);
+    return (parts.length > 1 ? parts[0][0] + parts[1][0] : (parts[0] || '').slice(0, 2)).toUpperCase();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocClick(e: MouseEvent): void {
+    if (this.menuOpen && this.contaRef && !this.contaRef.nativeElement.contains(e.target as Node)) {
+      this.menuOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void { this.menuOpen = false; }
 
   ngOnInit(): void {
     this.updateTime();
     this.timer = setInterval(() => this.updateTime(), 10000);
-
-    this.routerSub = this.router.events.pipe(
-      filter(e => e instanceof NavigationEnd)
-    ).subscribe((e: any) => {
-      this.pageTitle = this.titles[e.urlAfterRedirects] ?? '';
-    });
-
-    const url = this.router.url;
-    this.pageTitle = this.titles[url.split('?')[0]] ?? '';
   }
 
   ngOnDestroy(): void {
     clearInterval(this.timer);
-    this.routerSub?.unsubscribe();
   }
 
   private updateTime(): void {
